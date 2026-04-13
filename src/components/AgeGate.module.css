@@ -1,0 +1,108 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(4, 1, 6, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.box {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(179, 0, 255, 0.2);
+  border-radius: 24px;
+  padding: 48px 40px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 64px rgba(179, 0, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.logo {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  background: linear-gradient(135deg, #b300ff, #7c00d4, #d966ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 20px;
+}
+
+.icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.box h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #f0f0f0;
+}
+
+.box p {
+  color: rgba(255,255,255,0.45);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.sub {
+  color: #f0f0f0 !important;
+  font-size: 16px !important;
+  font-weight: 500;
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+}
+
+.buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.yes {
+  flex: 1;
+  padding: 14px;
+  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(179, 0, 255, 0.5);
+  transition: opacity 0.2s, box-shadow 0.2s;
+}
+.yes:hover { opacity: 0.88; box-shadow: 0 4px 28px rgba(179, 0, 255, 0.7); }
+
+.no {
+  flex: 1;
+  padding: 14px;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.45);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: background 0.2s;
+}
+.no:hover { background: rgba(255,255,255,0.09); }
+
+.disclaimer {
+  font-size: 11px !important;
+  color: rgba(255,255,255,0.18) !important;
+  margin-bottom: 0 !important;
+}

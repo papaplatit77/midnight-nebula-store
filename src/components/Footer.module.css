@@ -1,0 +1,30 @@
+.footer {
+  background: rgba(4, 1, 6, 0.85);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(179, 0, 255, 0.12);
+  margin-top: auto;
+}
+
+.inner {
+  max-width: 1200px; margin: 0 auto; padding: 40px 20px;
+  display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px;
+}
+@media (max-width: 760px) { .inner { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .inner { grid-template-columns: 1fr; gap: 24px; } }
+
+.logoWrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.logoText {
+  font-size: 18px; font-weight: 900; letter-spacing: 3px;
+  background: linear-gradient(135deg, #b300ff, #7c00d4, #d966ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.brand p { font-size: 13px; color: rgba(255,255,255,0.22); line-height: 1.6; }
+.age { color: rgba(255,255,255,0.35) !important; margin-top: 6px; }
+
+.links { display: flex; flex-direction: column; gap: 8px; }
+.linksTitle { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.links a { font-size: 14px; color: rgba(255,255,255,0.22); transition: color 0.2s; }
+.links a:hover { color: #d966ff; }
+
+.bottom { border-top: 1px solid rgba(255,255,255,0.04); padding: 16px 20px; text-align: center; }
+.bottom p { font-size: 12px; color: rgba(255,255,255,0.12); }

@@ -1,0 +1,105 @@
+.page { display: flex; flex-direction: column; gap: 20px; }
+
+.header { display: flex; align-items: center; gap: 12px; }
+.header h1 { font-size: 26px; font-weight: 700; color: #f0f0f0; }
+.count {
+  background: rgba(179,0,255,0.15); color: #d966ff;
+  border: 1px solid rgba(179,0,255,0.25);
+  font-size: 13px; font-weight: 700;
+  padding: 2px 10px; border-radius: 20px;
+}
+
+.controls { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px; font-size: 13px; color: rgba(255,255,255,0.45);
+  transition: all 0.2s;
+}
+.filter:hover { border-color: rgba(179,0,255,0.3); color: rgba(255,255,255,0.7); }
+.filterActive {
+  background: rgba(179,0,255,0.12) !important;
+  border-color: rgba(179,0,255,0.3) !important;
+  color: #f0f0f0 !important;
+}
+.filterCount {
+  background: rgba(255,255,255,0.08);
+  padding: 1px 6px; border-radius: 10px;
+  font-size: 11px; color: rgba(255,255,255,0.45);
+}
+
+.search {
+  flex: 1; min-width: 200px; max-width: 300px;
+  padding: 8px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 8px; color: #f0f0f0; font-size: 13px;
+  transition: border-color 0.2s;
+}
+.search:focus { border-color: rgba(179,0,255,0.4); }
+.search::placeholder { color: rgba(255,255,255,0.2); }
+
+.empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.22); }
+.empty span { font-size: 48px; display: block; margin-bottom: 12px; }
+.empty p { font-size: 15px; }
+
+.table {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.thead {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+}
+.th { flex: 1; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.8px; }
+
+.trow {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.trow:last-child { border-bottom: none; }
+.trow:hover { background: rgba(255,255,255,0.04); }
+
+.td { flex: 1; }
+
+.clientName { font-size: 14px; font-weight: 500; color: #f0f0f0; margin-bottom: 2px; }
+.clientEmail { font-size: 12px; color: rgba(255,255,255,0.3); }
+.city { font-size: 13px; color: rgba(255,255,255,0.5); }
+.itemsCount { font-size: 13px; color: rgba(255,255,255,0.45); }
+.total { font-size: 14px; font-weight: 700; color: #d966ff; }
+.date { font-size: 13px; color: rgba(255,255,255,0.38); }
+
+.statusSelect {
+  padding: 5px 10px;
+  background: rgba(255,255,255,0.06);
+  border-width: 1px; border-style: solid;
+  border-radius: 7px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.statusSelect option { background: #0d0115; color: #f0f0f0; }
+
+.viewBtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 8px; font-size: 14px; color: rgba(255,255,255,0.5);
+  transition: all 0.2s;
+}
+.viewBtn:hover { background: rgba(179,0,255,0.15); border-color: rgba(179,0,255,0.3); color: #f0f0f0; }

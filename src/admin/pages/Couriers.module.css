@@ -1,0 +1,166 @@
+.page { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Экспорт JSON ────────────────────────────────────────────── */
+.exportBox {
+  background: rgba(179,0,255,0.06); border: 1px solid rgba(179,0,255,0.2);
+  border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
+}
+.exportTitle {
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.exportSub { color: rgba(255,255,255,0.35); font-weight: 400; }
+.exportRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.exportJson {
+  flex: 1; min-width: 0; font-size: 11px; color: #d966ff;
+  background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+  font-family: monospace;
+}
+.copyBtn {
+  padding: 8px 16px; white-space: nowrap;
+  background: rgba(179,0,255,0.15); border: 1px solid rgba(179,0,255,0.3);
+  color: #d966ff; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.copyBtn:hover { background: rgba(179,0,255,0.25); }
+
+.header { display: flex; align-items: center; justify-content: space-between; }
+.headerLeft { display: flex; align-items: center; gap: 12px; }
+.headerLeft h1 { font-size: 26px; font-weight: 700; color: #f0f0f0; }
+.count { background: rgba(179,0,255,0.15); color: #d966ff; border: 1px solid rgba(179,0,255,0.25); font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
+
+.addBtn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  color: #fff; border-radius: 10px; font-size: 14px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(179,0,255,0.45); transition: opacity 0.2s; border: none; cursor: pointer;
+}
+.addBtn:hover { opacity: 0.85; }
+
+/* ── Форма ──────────────────────────────────────────────────── */
+.formCard {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(179,0,255,0.2);
+  border-radius: 16px; padding: 24px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.formTitle { font-size: 18px; font-weight: 700; color: #f0f0f0; }
+
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .fields { grid-template-columns: 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; }
+.field input {
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; color: #f0f0f0; font-size: 14px; transition: border-color 0.2s;
+}
+.field input:focus { border-color: rgba(179,0,255,0.5); outline: none; }
+.field input::placeholder { color: rgba(255,255,255,0.2); }
+.hint { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+/* ── Города ─────────────────────────────────────────────────── */
+.citiesSection { display: flex; flex-direction: column; gap: 10px; }
+.citiesLabel {
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 8px;
+}
+.citiesSel { background: rgba(179,0,255,0.2); color: #d966ff; border-radius: 10px; padding: 2px 8px; font-size: 12px; text-transform: none; }
+
+.citiesGrid { display: flex; flex-wrap: wrap; gap: 8px; }
+.cityBtn {
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 8px; font-size: 13px; color: rgba(255,255,255,0.55);
+  cursor: pointer; transition: all 0.15s; position: relative;
+}
+.cityBtn:hover:not(.cityTaken) { border-color: rgba(179,0,255,0.4); color: #f0f0f0; }
+.citySelected {
+  background: rgba(179,0,255,0.18) !important; border-color: rgba(179,0,255,0.5) !important;
+  color: #e8b4ff !important; font-weight: 600;
+}
+.cityTaken { opacity: 0.35; cursor: not-allowed; }
+.takenMark { font-size: 10px; margin-left: 4px; color: rgba(255,80,80,0.7); }
+
+.formActions { display: flex; gap: 10px; }
+.saveBtn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.2s;
+}
+.saveBtn:hover:not(:disabled) { opacity: 0.85; }
+.saveBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.cancelBtn {
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6); border-radius: 10px; font-size: 14px;
+  cursor: pointer; transition: all 0.2s;
+}
+.cancelBtn:hover { border-color: rgba(255,255,255,0.2); color: #f0f0f0; }
+
+/* ── Список ─────────────────────────────────────────────────── */
+.list { display: flex; flex-direction: column; gap: 12px; }
+
+.card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 18px;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: rgba(179,0,255,0.25); }
+
+.cardTop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cardInfo { display: flex; flex-direction: column; gap: 4px; }
+.cardName { font-size: 16px; font-weight: 700; color: #f0f0f0; }
+.cardId { font-size: 12px; color: rgba(255,255,255,0.35); }
+.cardId code { color: #d966ff; background: rgba(179,0,255,0.1); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+
+.cardActions { display: flex; gap: 8px; }
+.editBtn {
+  padding: 7px 14px;
+  background: rgba(179,0,255,0.12); border: 1px solid rgba(179,0,255,0.25);
+  color: #d966ff; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.editBtn:hover { background: rgba(179,0,255,0.2); }
+.deleteBtn {
+  padding: 7px 14px;
+  background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.2);
+  color: #ff6b6b; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.deleteBtn:hover { background: rgba(255,60,60,0.18); }
+
+.cardCities { display: flex; flex-wrap: wrap; gap: 6px; }
+.cityTag {
+  padding: 4px 10px;
+  background: rgba(179,0,255,0.1); border: 1px solid rgba(179,0,255,0.2);
+  border-radius: 6px; font-size: 12px; color: #d966ff; font-weight: 500;
+}
+.noCities { font-size: 13px; color: rgba(255,255,255,0.25); font-style: italic; }
+
+/* ── Пустое состояние ────────────────────────────────────────── */
+.empty {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 60px 20px; text-align: center;
+}
+.emptyIcon { font-size: 48px; }
+.empty p { font-size: 16px; color: rgba(255,255,255,0.5); }
+.emptyHint { font-size: 13px !important; color: rgba(255,255,255,0.3) !important; max-width: 380px; line-height: 1.6; }
+
+/* ── Диалог удаления ─────────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.dialog {
+  background: #1a0a2e; border: 1px solid rgba(179,0,255,0.3);
+  border-radius: 16px; padding: 28px 32px;
+  display: flex; flex-direction: column; gap: 20px; text-align: center;
+}
+.dialog p { font-size: 17px; font-weight: 600; color: #f0f0f0; }
+.dialogActions { display: flex; gap: 10px; justify-content: center; }

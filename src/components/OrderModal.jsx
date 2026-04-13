@@ -1,0 +1,600 @@
+import { useState, useMemo, useEffect } from 'react';
+import { useCart } from '../context/CartContext';
+import { useAdmin } from '../admin/context/AdminContext';
+
+import { categories } from '../data/products';
+import { useTelegram } from '../hooks/useTelegram';
+import styles from './OrderModal.module.css';
+
+const ORDER_API = '/api/order';
+
+const CITIES = [
+  'Köln','Düsseldorf','Dortmund','Essen','Duisburg','Bochum','Wuppertal',
+  'Bielefeld','Bonn','Münster','Mönchengladbach','Gelsenkirchen','Krefeld',
+  'Aachen','Oberhausen','Hagen','Hamm','Solingen','Leverkusen','Neuss',
+  'Paderborn','Mülheim an der Ruhr','Remscheid','Siegen','Moers','Witten',
+  'Bergisch Gladbach','Recklinghausen','Bottrop','Iserlohn',
+  'Berlin','Hamburg','München','Frankfurt am Main','Stuttgart',
+  'Leipzig','Bremen','Hannover','Nürnberg','Dresden',
+];
+
+const FLAVOR_GROUPS = [
+  { id: 'all',     label: 'Все вкусы',  keywords: [] },
+  { id: 'berry',   label: '🍓 Ягоды',   keywords: ['strawberry','blueberry','raspberry','cherry','клубника','черника','малина','вишня','ягод'] },
+  { id: 'fruit',   label: '🍑 Фрукты',  keywords: ['mango','watermelon','peach','apple','melon','pineapple','kiwi','манго','арбуз','персик','яблок','дын','ананас','киви'] },
+  { id: 'ice',     label: '❄️ Лёд',     keywords: ['ice','mint','menthol','лёд','мент','холод'] },
+  { id: 'drinks',  label: '🥤 Напитки', keywords: ['cola','lemon','lemonade','energy','кола','лимон','лимонад','энергетик'] },
+  { id: 'dessert', label: '🍰 Десерты', keywords: ['tart','cake','cream','vanilla','десерт','торт','пирог','крем','ваниль'] },
+  { id: 'tobacco', label: '🌿 Табак',   keywords: ['tobacco','табак'] },
+];
+
+const CAT_EMOJI = { disposable:'💨', pods:'🔌', liquids:'💧', accessories:'⚙️' };
+
+function matchFlavor(product, groupId) {
+  if (groupId === 'all') return true;
+  const group = FLAVOR_GROUPS.find(g => g.id === groupId);
+  if (!group) return false;
+  const text = (product.name + ' ' + (product.description || '')).toLowerCase();
+  return group.keywords.some(kw => text.includes(kw));
+}
+
+export default function OrderModal({ onClose }) {
+  const { add, items, total, count, clear } = useCart();
+  const { products } = useAdmin();
+  const { username, userId } = useTelegram();
+  const [couriersList, setCouriersList] = useState([]);
+
+  const [step, setStep] = useState(1);
+  const [deliveryType, setDeliveryType] = useState('');
+  const [mailOption, setMailOption] = useState(''); // 'track' | 'notrack'
+  const [city, setCity] = useState('');
+  const [payment, setPayment] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [search, setSearch] = useState('');
+  const [activeCat, setActiveCat] = useState('all');
+  const [activeFlavor, setActiveFlavor] = useState('all');
+  const [addedMap, setAddedMap] = useState({});
+  const [visible, setVisible] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState('');
+
+  useEffect(() => {
+    requestAnimationFrame(() => setVisible(true));
+    document.body.style.overflow = 'hidden';
+    fetch('/api/couriers').then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setCouriersList(data);
+    }).catch(() => {});
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const courierForCity = city ? (couriersList.find(c => c.cities && c.cities.includes(city)) || null) : null;
+
+  const MAIL_COSTS = { track: 6.20, notrack: 4.19 };
+  const shippingCost = deliveryType === 'mail' && mailOption ? MAIL_COSTS[mailOption] : 0;
+  const grandTotal = total + shippingCost;
+
+  const mailFieldsFilled = firstName.trim() && lastName.trim() && phone.trim() && deliveryCity.trim();
+  const canNext = deliveryType && payment
+    && (deliveryType === 'meeting'
+      ? city
+      : mailOption && mailFieldsFilled);
+
+  const handleDeliveryType = (type) => {
+    setDeliveryType(type);
+    if (type === 'mail') {
+      setPayment('card');
+      setMailOption('');
+    } else {
+      setPayment('');
+      setMailOption('');
+    }
+  };
+
+  const filtered = useMemo(() => {
+    return products.filter(p => {
+      if (activeCat !== 'all' && p.category !== activeCat) return false;
+      if (!matchFlavor(p, activeFlavor)) return false;
+      if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  }, [products, activeCat, activeFlavor, search]);
+
+  const handleAdd = (product) => {
+    add(product, 1);
+    setAddedMap(prev => ({ ...prev, [product.id]: true }));
+    setTimeout(() => setAddedMap(prev => ({ ...prev, [product.id]: false })), 1200);
+  };
+
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(onClose, 320);
+  };
+
+  const handleSendOrder = async () => {
+    if (items.length === 0) return;
+    setSending(true);
+    setSendError('');
+    try {
+      const payload = {
+        tgUsername: username || 'неизвестен',
+        tgUserId: userId || null,
+        deliveryType,
+        mailOption: mailOption || null,
+        shippingCost: shippingCost > 0 ? shippingCost.toFixed(2) : null,
+        city: deliveryType === 'mail' ? deliveryCity.trim() : city,
+        ...(deliveryType === 'mail' && {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phone: phone.trim(),
+        }),
+        payment,
+        items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+        total: grandTotal.toFixed(2),
+        courierId: courierForCity ? courierForCity.chatId : null,
+      };
+      const res = await fetch(ORDER_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Слишком много заказов. Подождите немного.');
+      }
+      if (!res.ok) throw new Error('Ошибка сервера');
+      setSent(true);
+      clear();
+    } catch (e) {
+      setSendError(e.message || 'Не удалось отправить. Попробуйте ещё раз.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div
+      className={`${styles.backdrop} ${visible ? styles.backdropVisible : ''}`}
+      onClick={e => e.target === e.currentTarget && handleClose()}
+    >
+      <div className={`${styles.sheet} ${visible ? styles.sheetVisible : ''} ${step === 2 ? styles.sheetFull : styles.sheetHalf}`}>
+
+        <div className={styles.handle}><span /></div>
+        <button className={styles.closeBtn} onClick={handleClose}>✕</button>
+
+        {/* ══ STEP 1 ══ */}
+        {step === 1 && (
+          <div className={styles.step1}>
+            <div className={styles.stepHeader}>
+              <p className={styles.stepLabel}>WAKASHOP</p>
+              <h2 className={styles.stepTitle}>Оформить заказ</h2>
+              <p className={styles.stepSub}>Выберите способ получения и оплаты</p>
+            </div>
+
+            {/* TG username */}
+            {username && (
+              <div className={styles.tgUser}>
+                <span className={styles.tgIcon}>✈️</span>
+                <span className={styles.tgName}>Telegram: <strong>{username}</strong></span>
+              </div>
+            )}
+
+            {/* Способ доставки */}
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Способ получения</label>
+              <div className={styles.optionRow}>
+                <button
+                  className={`${styles.optionBtn} ${deliveryType === 'meeting' ? styles.optionActive : ''}`}
+                  onClick={() => handleDeliveryType('meeting')}
+                >
+                  <span className={styles.optionIcon}>🤝</span>
+                  <span className={styles.optionText}>
+                    <strong>Личная встреча</strong>
+                    <small>Быстро и удобно</small>
+                  </span>
+                </button>
+                <button
+                  className={`${styles.optionBtn} ${deliveryType === 'mail' ? styles.optionActive : ''}`}
+                  onClick={() => handleDeliveryType('mail')}
+                >
+                  <span className={styles.optionIcon}>📬</span>
+                  <span className={styles.optionText}>
+                    <strong>Почта</strong>
+                    <small>DHL · только карта</small>
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Варианты почты — только если выбрана почта */}
+            {deliveryType === 'mail' && (
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Тип доставки</label>
+                <div className={styles.optionRow}>
+                  <button
+                    className={`${styles.optionBtn} ${mailOption === 'track' ? styles.optionActive : ''}`}
+                    onClick={() => setMailOption('track')}
+                  >
+                    <span className={styles.optionIcon}>📦</span>
+                    <span className={styles.optionText}>
+                      <strong>С трек-номером</strong>
+                      <small>DHL · 6,20 €</small>
+                    </span>
+                  </button>
+                  <button
+                    className={`${styles.optionBtn} ${mailOption === 'notrack' ? styles.optionActive : ''}`}
+                    onClick={() => setMailOption('notrack')}
+                  >
+                    <span className={styles.optionIcon}>✉️</span>
+                    <span className={styles.optionText}>
+                      <strong>Без трек-номера</strong>
+                      <small>DHL · 4,19 €</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Данные получателя — только для почты */}
+            {deliveryType === 'mail' && (
+              <>
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Имя</label>
+                    <input
+                      className={styles.textInput}
+                      type="text"
+                      placeholder="Иван"
+                      value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Фамилия</label>
+                    <input
+                      className={styles.textInput}
+                      type="text"
+                      placeholder="Müller"
+                      value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Номер телефона</label>
+                  <input
+                    className={styles.textInput}
+                    type="tel"
+                    placeholder="+49 151 00000000"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Город доставки</label>
+                  <input
+                    className={styles.textInput}
+                    type="text"
+                    placeholder="Köln"
+                    value={deliveryCity}
+                    onChange={e => setDeliveryCity(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Город — только для личной встречи (для курьера) */}
+            {deliveryType !== 'mail' && (
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Город</label>
+                <div className={styles.selectWrap}>
+                  <select
+                    className={styles.select}
+                    value={city}
+                    onChange={e => setCity(e.target.value)}
+                  >
+                    <option value="">Выберите город...</option>
+                    <optgroup label="NRW">
+                      {CITIES.slice(0, 30).map(c => <option key={c} value={c}>{c}</option>)}
+                    </optgroup>
+                    <optgroup label="Другие города">
+                      {CITIES.slice(30).map(c => <option key={c} value={c}>{c}</option>)}
+                    </optgroup>
+                  </select>
+                  <span className={styles.selectArrow}>▾</span>
+                </div>
+                {courierForCity && (
+                  <div className={styles.courierHint}>
+                    🚗 Ваш курьер: <strong>{courierForCity.name}</strong>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Оплата */}
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Способ оплаты</label>
+              {deliveryType === 'mail' ? (
+                <div className={`${styles.optionBtn} ${styles.optionActive} ${styles.optionLocked}`}>
+                  <span className={styles.optionIcon}>💳</span>
+                  <span className={styles.optionText}>
+                    <strong>Банковская карта</strong>
+                    <small>Единственный вариант для почты</small>
+                  </span>
+                </div>
+              ) : (
+                <div className={styles.optionRow}>
+                  <button
+                    className={`${styles.optionBtn} ${payment === 'card' ? styles.optionActive : ''}`}
+                    onClick={() => setPayment('card')}
+                  >
+                    <span className={styles.optionIcon}>💳</span>
+                    <span className={styles.optionText}>
+                      <strong>Банковская карта</strong>
+                      <small>Безналичный расчёт</small>
+                    </span>
+                  </button>
+                  <button
+                    className={`${styles.optionBtn} ${payment === 'cash' ? styles.optionActive : ''}`}
+                    onClick={() => setPayment('cash')}
+                  >
+                    <span className={styles.optionIcon}>💵</span>
+                    <span className={styles.optionText}>
+                      <strong>Наличные</strong>
+                      <small>При получении</small>
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button
+              className={`${styles.nextBtn} ${canNext ? styles.nextBtnActive : ''}`}
+              disabled={!canNext}
+              onClick={() => setStep(2)}
+            >
+              {canNext ? 'ДАЛЬШЕ — ВЫБРАТЬ ТОВАРЫ →' : 'Заполните все поля'}
+            </button>
+          </div>
+        )}
+
+        {/* ══ STEP 2 ══ */}
+        {step === 2 && (
+          <div className={styles.step2}>
+            <div className={styles.step2Header}>
+              <button className={styles.backBtn} onClick={() => setStep(1)}>← Назад</button>
+              <div className={styles.step2Info}>
+                <span className={styles.step2Tag}>
+                  {deliveryType === 'meeting' ? '🤝 Встреча' : mailOption === 'track' ? '📦 Почта+трек' : '✉️ Почта'}
+                </span>
+                <span className={styles.step2Tag}>📍 {city}</span>
+                <span className={styles.step2Tag}>{payment === 'card' ? '💳 Карта' : '💵 Нал'}</span>
+              </div>
+            </div>
+
+            {/* Поиск */}
+            <div className={styles.searchWrap}>
+              <span className={styles.searchIcon}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+              </span>
+              <input
+                className={styles.searchInput}
+                type="text"
+                placeholder="Поиск по названию..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              {search && <button className={styles.searchClear} onClick={() => setSearch('')}>✕</button>}
+            </div>
+
+            {/* Категории */}
+            <div className={styles.filterSection}>
+              <p className={styles.filterLabel}>Категория</p>
+              <div className={styles.filterRow}>
+                {categories.map(cat => (
+                  <button
+                    key={cat.id}
+                    className={`${styles.filterChip} ${activeCat === cat.id ? styles.filterChipActive : ''}`}
+                    onClick={() => setActiveCat(cat.id)}
+                  >
+                    {cat.id !== 'all' && <span>{CAT_EMOJI[cat.id]}</span>}
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Вкусы */}
+            <div className={styles.filterSection}>
+              <p className={styles.filterLabel}>Вкус / Группа</p>
+              <div className={styles.filterRow}>
+                {FLAVOR_GROUPS.map(f => (
+                  <button
+                    key={f.id}
+                    className={`${styles.filterChip} ${activeFlavor === f.id ? styles.filterChipActive : ''}`}
+                    onClick={() => setActiveFlavor(f.id)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Сетка товаров */}
+            <div className={styles.productsGrid}>
+              {filtered.length === 0 ? (
+                <div className={styles.empty}>
+                  <span>😔</span>
+                  <p>Ничего не найдено</p>
+                </div>
+              ) : filtered.map(p => {
+                const inCart = items.find(i => i.id === p.id);
+                const justAdded = addedMap[p.id];
+                return (
+                  <div
+                    key={p.id}
+                    className={`${styles.productCard} ${inCart ? styles.productCardInCart : ''} ${!p.inStock ? styles.productCardOut : ''}`}
+                    onClick={() => p.inStock && handleAdd(p)}
+                  >
+                    <div className={styles.productImg}>
+                      {p.image ? (
+                        <img src={p.image} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      ) : (
+                        <span>{CAT_EMOJI[p.category] || '📦'}</span>
+                      )}
+                      {!p.inStock && <div className={styles.stockOverlay}>Нет</div>}
+                      {inCart && (
+                        <div className={styles.cartBadge}>× {inCart.qty}</div>
+                      )}
+                    </div>
+                    <div className={styles.productBody}>
+                      <p className={styles.productName}>{p.name}</p>
+                      <div className={styles.productMeta}>
+                        {p.puffs && <span>{p.puffs} затяжек</span>}
+                        {p.nicotine != null && <span>{p.nicotine}мг</span>}
+                      </div>
+                      <div className={styles.productFooter}>
+                        <div className={styles.productPrices}>
+                          <span className={styles.productPrice}>{p.price.toFixed(2)} €</span>
+                          {p.oldPrice && <span className={styles.productOld}>{p.oldPrice.toFixed(2)} €</span>}
+                        </div>
+                        <div className={`${styles.addIcon} ${justAdded ? styles.addIconDone : ''} ${inCart ? styles.addIconActive : ''}`}>
+                          {justAdded ? '✓' : inCart ? `+${inCart.qty}` : '+'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Итог — всегда виден */}
+            <div className={styles.step2Footer}>
+              {count > 0 ? (
+                <>
+                  <p className={styles.step2FooterText}>🛒 {count} шт. · <strong>{total.toFixed(2)} €</strong></p>
+                  <button className={`${styles.orderBtn}`} onClick={() => setStep(3)}>
+                    ОФОРМИТЬ →
+                  </button>
+                </>
+              ) : (
+                <p className={styles.step2FooterHint}>Нажмите на товар чтобы добавить</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══ STEP 3 — Подтверждение ══ */}
+        {step === 3 && (
+          <div className={styles.step1}>
+            {sent ? (
+              <div className={styles.successBlock}>
+                <div className={styles.successIcon}>✅</div>
+                <h2 className={styles.successTitle}>Заказ отправлен!</h2>
+                <p className={styles.successSub}>Мы свяжемся с вами в Telegram в ближайшее время.</p>
+                <button className={`${styles.nextBtn} ${styles.nextBtnActive}`} onClick={handleClose}>
+                  Закрыть
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className={styles.stepHeader}>
+                  <p className={styles.stepLabel}>WAKASHOP</p>
+                  <h2 className={styles.stepTitle}>Ваш заказ</h2>
+                </div>
+
+                {/* Инфо */}
+                <div className={styles.confirmInfo}>
+                  {username && (
+                    <div className={styles.confirmRow}>
+                      <span className={styles.confirmKey}>Telegram</span>
+                      <span className={styles.confirmVal}>{username}</span>
+                    </div>
+                  )}
+                  {deliveryType === 'meeting' && (
+                    <div className={styles.confirmRow}>
+                      <span className={styles.confirmKey}>Город</span>
+                      <span className={styles.confirmVal}>📍 {city}</span>
+                    </div>
+                  )}
+                  {deliveryType === 'mail' && (
+                    <>
+                      <div className={styles.confirmRow}>
+                        <span className={styles.confirmKey}>Получатель</span>
+                        <span className={styles.confirmVal}>{firstName} {lastName}</span>
+                      </div>
+                      <div className={styles.confirmRow}>
+                        <span className={styles.confirmKey}>Телефон</span>
+                        <span className={styles.confirmVal}>{phone}</span>
+                      </div>
+                      <div className={styles.confirmRow}>
+                        <span className={styles.confirmKey}>Город</span>
+                        <span className={styles.confirmVal}>📍 {deliveryCity}</span>
+                      </div>
+                    </>
+                  )}
+                  <div className={styles.confirmRow}>
+                    <span className={styles.confirmKey}>Доставка</span>
+                    <span className={styles.confirmVal}>
+                      {deliveryType === 'meeting'
+                        ? '🤝 Личная встреча'
+                        : mailOption === 'track'
+                          ? '📦 Почта с трек-номером'
+                          : '✉️ Почта без трек-номера'}
+                    </span>
+                  </div>
+                  <div className={styles.confirmRow}>
+                    <span className={styles.confirmKey}>Оплата</span>
+                    <span className={styles.confirmVal}>{payment === 'card' ? '💳 Карта' : '💵 Наличные'}</span>
+                  </div>
+                </div>
+
+                {/* Товары */}
+                <div className={styles.confirmItems}>
+                  {items.map(item => (
+                    <div key={item.id} className={styles.confirmItem}>
+                      <span className={styles.confirmItemName}>{item.name}</span>
+                      <span className={styles.confirmItemQty}>× {item.qty}</span>
+                      <span className={styles.confirmItemPrice}>{(item.price * item.qty).toFixed(2)} €</span>
+                    </div>
+                  ))}
+                  {shippingCost > 0 && (
+                    <div className={styles.confirmItem}>
+                      <span className={styles.confirmItemName}>
+                        {mailOption === 'track' ? '📦 Доставка (с трек-номером)' : '✉️ Доставка (без трек-номера)'}
+                      </span>
+                      <span className={styles.confirmItemQty}></span>
+                      <span className={styles.confirmItemPrice}>{shippingCost.toFixed(2)} €</span>
+                    </div>
+                  )}
+                  <div className={styles.confirmTotal}>
+                    <span>Итого</span>
+                    <span>{grandTotal.toFixed(2)} €</span>
+                  </div>
+                </div>
+
+                {sendError && <p className={styles.sendError}>{sendError}</p>}
+
+                <div className={styles.confirmBtns}>
+                  <button className={styles.backBtn} onClick={() => setStep(2)}>← Изменить</button>
+                  <button
+                    className={`${styles.nextBtn} ${styles.nextBtnActive} ${styles.confirmSendBtn}`}
+                    onClick={handleSendOrder}
+                    disabled={sending || items.length === 0}
+                  >
+                    {sending ? 'Отправляем...' : '📨 Отправить заказ'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

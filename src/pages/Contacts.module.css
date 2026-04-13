@@ -1,0 +1,38 @@
+.page { max-width: 900px; margin: 0 auto; padding: 40px 16px 60px; }
+.inner h1 { font-size: 28px; font-weight: 700; color: #f0f0f0; margin-bottom: 28px; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+.info {
+  background: rgba(255,255,255,0.04); backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 22px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.item { display: flex; align-items: flex-start; gap: 14px; }
+.item > span { font-size: 22px; flex-shrink: 0; }
+.label { font-size: 11px; color: rgba(255,255,255,0.32); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.value { font-size: 14px; color: #f0f0f0; }
+
+.form {
+  background: rgba(255,255,255,0.04); backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 22px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.form h2 { font-size: 17px; font-weight: 600; color: #f0f0f0; margin-bottom: 4px; }
+.form input, .form textarea {
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px; color: #f0f0f0; font-size: 14px; transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+.form input:focus, .form textarea:focus { border-color: rgba(179,0,255,0.5); background: rgba(255,255,255,0.07); }
+.form input::placeholder, .form textarea::placeholder { color: rgba(255,255,255,0.18); }
+.form textarea { resize: vertical; }
+.form button {
+  padding: 12px;
+  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(179,0,255,0.4); transition: opacity 0.2s;
+}
+.form button:hover { opacity: 0.85; }
