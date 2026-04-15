@@ -54,13 +54,16 @@ export default function Dashboard() {
               {recent.map(order => (
                 <Link to={`/admin/orders/${order.id}`} key={order.id} className={styles.orderRow}>
                   <div className={styles.orderInfo}>
-                    <span className={styles.orderName}>{order.name}</span>
-                    <span className={styles.orderDate}>{new Date(order.createdAt).toLocaleDateString('ru-RU')}</span>
+                    <span className={styles.orderName}>{order.name || order.tgUsername || 'Неизвестен'}</span>
+                    <span className={styles.orderDate}>
+                      {new Date(order.createdAt || order.date).toLocaleDateString('ru-RU')}
+                      {order.city ? ` · ${order.city}` : ''}
+                    </span>
                   </div>
                   <div className={styles.orderRight}>
-                    <span className={styles.orderTotal}>{(order.total || 0).toFixed(2)} €</span>
-                    <span className={styles.statusDot} style={{ background: STATUS_COLOR[order.status] }}>
-                      {STATUS_LABEL[order.status]}
+                    <span className={styles.orderTotal}>{parseFloat(order.total || 0).toFixed(2)} €</span>
+                    <span className={styles.statusDot} style={{ background: STATUS_COLOR[order.status] || '#888' }}>
+                      {STATUS_LABEL[order.status] || 'Новый'}
                     </span>
                   </div>
                 </Link>

@@ -462,6 +462,22 @@ app.post('/api/order', async (req, res) => {
   }
 });
 
+// Получить всех пользователей для админки
+app.get('/api/admin/users', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET)
+    return res.status(401).json({ error: 'Unauthorized' });
+  const db = loadDB();
+  const users = Object.values(db.users || {}).map(u => ({
+    ...u,
+    banned: !!db.bans[u.id],
+    orderCount: (db.orders?.[u.id] || []).length,
+    totalSpent: (db.orders?.[u.id] || []).reduce((s, o) => s + (parseFloat(o.total) || 0), 0),
+  }));
+  users.sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen));
+  res.json(users);
+});
+
 // Получить все заказы для админки (защищённый endpoint)
 app.get('/api/admin/orders', (req, res) => {
   const secret = req.headers['x-admin-secret'];

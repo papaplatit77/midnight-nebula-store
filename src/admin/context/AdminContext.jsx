@@ -9,6 +9,7 @@ export function AdminProvider({ children }) {
   const adminPasswordRef = useRef(sessionStorage.getItem('admin_pw') || '');
 
   const [orders, setOrders] = useState([]);
+  const [users, setUsers] = useState([]);
 
   const [products, setProducts] = useState(() => {
     try {
@@ -21,14 +22,33 @@ export function AdminProvider({ children }) {
     try { return JSON.parse(localStorage.getItem('dragon_couriers') || '[]'); } catch { return []; }
   });
 
-  // Загружаем заказы из API бота при входе
+  // Нормализация заказа из разных источников в единый формат
+  function normalizeOrder(o) {
+    return {
+      ...o,
+      name: o.tgUsername || o.name || 'Неизвестен',
+      createdAt: o.date || o.createdAt || new Date().toISOString(),
+      total: parseFloat(o.total) || 0,
+      status: o.status || 'new',
+    };
+  }
+
+  // Загружаем заказы и пользователей из API бота при входе
   useEffect(() => {
     if (!authed) return;
     const pw = adminPasswordRef.current;
     if (!pw) return;
+
     fetch('/api/orders', { headers: { 'x-admin-password': pw } })
       .then(r => r.ok ? r.json() : [])
-      .then(data => { if (Array.isArray(data) && data.length > 0) setOrders(data); })
+      .then(data => {
+        if (Array.isArray(data)) setOrders(data.map(normalizeOrder));
+      })
+      .catch(() => {});
+
+    fetch('/api/users', { headers: { 'x-admin-password': pw } })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { if (Array.isArray(data)) setUsers(data); })
       .catch(() => {});
   }, [authed]);
 
@@ -120,19 +140,38 @@ export function AdminProvider({ children }) {
     return couriers.find(c => c.cities && c.cities.includes(city)) || null;
   };
 
-  const customers = Object.values(
-    orders.reduce((acc, order) => {
-      const key = order.email;
-      if (!acc[key]) {
-        acc[key] = { name: order.name, email: order.email, phone: order.phone, city: order.city, orders: 0, spent: 0 };
-      }
-      acc[key].orders += 1;
-      acc[key].spent += order.total || 0;
-      return acc;
-    }, {})
-  );
+  // Клиенты: сначала из пользователей бота, дополняем данными из заказов
+  const customers = users.length > 0
+    ? users.map(u => ({
+        name: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.username || `id:${u.id}`,
+        username: u.username ? `@${u.username}` : null,
+        tgUserId: u.id,
+        city: orders.find(o => o.tgUserId === u.id)?.city || '—',
+        orders: u.orderCount || 0,
+        spent: u.totalSpent || 0,
+        banned: u.banned,
+        lastSeen: u.lastSeen,
+      }))
+    : Object.values(
+        orders.reduce((acc, order) => {
+          const key = order.tgUserId || order.name || 'unknown';
+          if (!acc[key]) {
+            acc[key] = {
+              name: order.name || order.tgUsername || 'Неизвестен',
+              username: order.tgUsername || null,
+              tgUserId: order.tgUserId || null,
+              city: order.city || '—',
+              orders: 0,
+              spent: 0,
+            };
+          }
+          acc[key].orders += 1;
+          acc[key].spent += parseFloat(order.total) || 0;
+          return acc;
+        }, {})
+      );
 
-  const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+  const revenue = orders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
 
   return (
     <AdminContext.Provider value={{
@@ -140,7 +179,7 @@ export function AdminProvider({ children }) {
       orders, addOrder, updateOrderStatus,
       products, addProduct, updateProduct, deleteProduct,
       couriers, addCourier, updateCourier, deleteCourier, getCourierForCity,
-      customers, revenue,
+      customers, users, revenue,
     }}>
       {children}
     </AdminContext.Provider>
