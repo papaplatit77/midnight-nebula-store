@@ -79,7 +79,6 @@ const ADMIN_KB = {
 
 const USER_KB = {
   keyboard: [
-    [{ text: '🛒 Магазин', web_app: { url: WEBAPP_URL } }],
     [{ text: '🛍 Мои заказы' }, { text: 'ℹ️ О нас'   }],
     [{ text: '🆘 Поддержка'  }, { text: '📦 Опт'     }],
     [{ text: '🏙 Города: Курьеры' }],
@@ -119,16 +118,10 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(id,
     `👋 Привет, <b>${first_name || 'друг'}</b>!\n\n` +
     `Добро пожаловать в <b>Wakashop</b> — лучший вейп-магазин NRW 🇩🇪\n\n` +
-    `🛍 Открой наш магазин прямо здесь или выбери курьера в своём городе.\n\n` +
+    `Чтобы оформить заказ — нажмите кнопку <b>ОФОРМИТЬ ЗАКАЗ</b> в левом нижнем углу.\n\n` +
     `<i>Только оригинальная продукция · Доставка по всей Германии · 18+</i>`,
-    {
-      parse_mode: 'HTML',
-      reply_markup: {
-        inline_keyboard: [[{ text: '🛒 Открыть магазин', web_app: { url: WEBAPP_URL } }]],
-      },
-    }
+    { parse_mode: 'HTML', reply_markup: USER_KB }
   );
-  bot.sendMessage(id, '👇 Или воспользуйся меню:', { reply_markup: USER_KB });
 });
 
 // ── /admin ────────────────────────────────────────────────────
