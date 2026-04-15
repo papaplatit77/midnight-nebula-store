@@ -81,10 +81,32 @@ const USER_KB = {
   keyboard: [
     [{ text: '🛍 Мои заказы' }, { text: 'ℹ️ О нас'   }],
     [{ text: '🆘 Поддержка'  }, { text: '📦 Опт'     }],
+    [{ text: '🏙 Города: Курьеры' }],
   ],
   resize_keyboard: true,
   is_persistent: true,
 };
+
+// ── Курьеры ───────────────────────────────────────────────────
+function getCouriers() {
+  try { return JSON.parse(process.env.COURIERS_JSON || '[]'); }
+  catch { return []; }
+}
+
+function buildCitiesKeyboard() {
+  const couriers = getCouriers();
+  if (!couriers.length) return null;
+  // Уникальные города
+  const cities = [...new Set(couriers.map(c => c.city))];
+  // По 2 города в ряд
+  const rows = [];
+  for (let i = 0; i < cities.length; i += 2) {
+    const row = [{ text: cities[i], callback_data: `city_${cities[i]}` }];
+    if (cities[i + 1]) row.push({ text: cities[i + 1], callback_data: `city_${cities[i + 1]}` });
+    rows.push(row);
+  }
+  return { inline_keyboard: rows };
+}
 
 // ── /start ────────────────────────────────────────────────────
 bot.onText(/\/start/, (msg) => {
@@ -290,6 +312,20 @@ bot.on('message', async (msg) => {
     );
   }
 
+  if (msgText === '🏙 Города: Курьеры') {
+    const kb = buildCitiesKeyboard();
+    if (!kb) {
+      return bot.sendMessage(chatId,
+        `🏙 <b>Курьеры по городам</b>\n\nПока курьеры не добавлены. Напишите в поддержку для уточнения.`,
+        { parse_mode: 'HTML', reply_markup: USER_KB }
+      );
+    }
+    return bot.sendMessage(chatId,
+      `🏙 <b>Выберите ваш город:</b>\n\n<i>Курьер свяжется с вами и поможет оформить заказ напрямую.</i>`,
+      { parse_mode: 'HTML', reply_markup: kb }
+    );
+  }
+
   if (msgText === '🆘 Поддержка') {
     const supportLink = SUPPORT_USERNAME
       ? `Напишите нам: @${SUPPORT_USERNAME.replace(/^@/, '')}`
@@ -307,9 +343,38 @@ bot.on('message', async (msg) => {
   }
 });
 
-// ── Callback (пагинация заказов) ─────────────────────────────
+// ── Callback (пагинация заказов + выбор города) ──────────────
 bot.on('callback_query', async (query) => {
   bot.answerCallbackQuery(query.id);
+
+  // Выбор города — показать курьеров
+  if (query.data.startsWith('city_')) {
+    const city = query.data.slice(5);
+    const couriers = getCouriers().filter(c => c.city === city);
+    if (!couriers.length) {
+      return bot.sendMessage(query.message.chat.id,
+        `😔 В городе <b>${city}</b> пока нет курьеров.`,
+        { parse_mode: 'HTML', reply_markup: USER_KB }
+      );
+    }
+    const lines = couriers.map((c, i) => {
+      const contact = c.username ? `@${c.username.replace(/^@/, '')}` : c.phone || '—';
+      const name = c.name ? `<b>${c.name}</b>` : `<b>Курьер ${i + 1}</b>`;
+      const note = c.note ? `\n<i>${c.note}</i>` : '';
+      return `${name} — ${contact}${note}`;
+    });
+    const inlineKb = couriers
+      .filter(c => c.username)
+      .map(c => [{ text: `✉️ Написать ${c.name || 'курьеру'}`, url: `https://t.me/${c.username.replace(/^@/, '')}` }]);
+
+    return bot.sendMessage(query.message.chat.id,
+      `🏙 <b>Курьеры в городе ${city}:</b>\n\n${lines.join('\n\n')}\n\n<i>Напишите напрямую — курьер поможет с заказом.</i>`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: inlineKb.length ? { inline_keyboard: inlineKb } : USER_KB,
+      }
+    );
+  }
 
   const match = query.data.match(/^orders_(\d+)_(\d+)$/);
   if (!match) return;
