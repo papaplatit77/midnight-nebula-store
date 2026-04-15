@@ -14,13 +14,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const BOT_URL = process.env.BOT_API_URL;
+  const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';
   const ADMIN_SECRET = process.env.ADMIN_SECRET;
-
-  if (!BOT_URL) {
-    // Если бот не настроен — возвращаем пустой список
-    return res.status(200).json([]);
-  }
 
   try {
     if (req.method === 'GET') {

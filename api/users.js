@@ -10,9 +10,8 @@ export default async function handler(req, res) {
   if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD)
     return res.status(401).json({ error: 'Unauthorized' });
 
-  const BOT_URL = process.env.BOT_API_URL;
+  const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';
   const ADMIN_SECRET = process.env.ADMIN_SECRET;
-  if (!BOT_URL) return res.status(200).json([]);
 
   try {
     const r = await fetch(`${BOT_URL}/api/admin/users`, {

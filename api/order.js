@@ -134,8 +134,8 @@ export default async function handler(req, res) {
   }
 
   // ── Сохранение заказа в БД бота (Railway) ────────────────────
-  const BOT_URL = process.env.BOT_API_URL;
-  if (BOT_URL && tgUserId) {
+  const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';
+  if (tgUserId) {
     fetch(`${BOT_URL}/api/save-order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
