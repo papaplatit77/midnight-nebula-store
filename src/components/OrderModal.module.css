@@ -399,8 +399,8 @@
 
 .productImg {
   width: 100%;
-  aspect-ratio: 1;
-  min-height: 120px;
+  height: 120px;
+  flex-shrink: 0;
   background: rgba(255,255,255,0.03);
   display: flex;
   align-items: center;
