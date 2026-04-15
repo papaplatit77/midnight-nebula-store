@@ -21,7 +21,28 @@ export function AdminProvider({ children }) {
   useEffect(() => {
     fetch('/api/products')
       .then(r => r.ok ? r.json() : [])
-      .then(data => { if (Array.isArray(data) && data.length > 0) setProducts(data); })
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data);
+        } else {
+          // Сервер пустой — берём из localStorage если есть (миграция)
+          try {
+            const local = JSON.parse(localStorage.getItem('dragon_products') || '[]');
+            if (local.length > 0) {
+              setProducts(local);
+              // Сохраняем на сервер
+              const pw = adminPasswordRef.current;
+              if (pw) {
+                fetch('/api/products', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+                  body: JSON.stringify({ products: local }),
+                }).catch(() => {});
+              }
+            }
+          } catch (_) {}
+        }
+      })
       .catch(() => {});
   }, []);
 
