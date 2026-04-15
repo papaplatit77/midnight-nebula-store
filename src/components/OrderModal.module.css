@@ -396,7 +396,9 @@
 .productCardOut { opacity: 0.45; cursor: default; }
 
 .productImg {
+  width: 100%;
   aspect-ratio: 1;
+  min-height: 120px;
   background: rgba(255,255,255,0.03);
   display: flex;
   align-items: center;

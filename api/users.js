@@ -2,8 +2,8 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-password');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'GET') return res.status(405).end();
 
   const password = req.headers['x-admin-password'];
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -12,6 +12,23 @@ export default async function handler(req, res) {
 
   const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';
   const ADMIN_SECRET = process.env.ADMIN_SECRET;
+
+  if (req.method === 'DELETE') {
+    const userId = req.query.id;
+    if (!userId) return res.status(400).json({ error: 'id required' });
+    try {
+      const r = await fetch(`${BOT_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-secret': ADMIN_SECRET || '' },
+      });
+      if (!r.ok) return res.status(502).json({ error: 'Bot API error' });
+      return res.status(200).json({ ok: true });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  if (req.method !== 'GET') return res.status(405).end();
 
   try {
     const r = await fetch(`${BOT_URL}/api/admin/users`, {

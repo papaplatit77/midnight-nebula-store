@@ -56,6 +56,15 @@
   border-radius: 20px; font-size: 13px; font-weight: 700; color: #d966ff;
 }
 .spent { font-size: 15px; font-weight: 700; color: #d966ff; }
+.deleteBtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.15);
+  border-radius: 8px; font-size: 14px; cursor: pointer;
+  transition: all 0.2s;
+}
+.deleteBtn:hover { background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.4); }
 
 .summary {
   display: flex; gap: 16px; flex-wrap: wrap;

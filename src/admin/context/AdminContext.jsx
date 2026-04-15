@@ -129,6 +129,27 @@ export function AdminProvider({ children }) {
     return newOrder;
   };
 
+  const deleteOrder = async (id) => {
+    setOrders(prev => prev.filter(o => o.id !== id));
+    const pw = adminPasswordRef.current;
+    if (!pw) return;
+    fetch(`/api/orders?id=${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-password': pw },
+    }).catch(() => {});
+  };
+
+  const deleteUser = async (tgUserId) => {
+    setUsers(prev => prev.filter(u => u.id !== tgUserId));
+    setOrders(prev => prev.filter(o => o.tgUserId !== tgUserId));
+    const pw = adminPasswordRef.current;
+    if (!pw) return;
+    fetch(`/api/users?id=${tgUserId}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-password': pw },
+    }).catch(() => {});
+  };
+
   const updateOrderStatus = async (id, status) => {
     // Обновляем локально сразу
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
@@ -224,6 +245,7 @@ export function AdminProvider({ children }) {
       products, addProduct, updateProduct, deleteProduct,
       couriers, addCourier, updateCourier, deleteCourier, getCourierForCity,
       customers, users, revenue,
+      deleteOrder, deleteUser,
     }}>
       {children}
     </AdminContext.Provider>

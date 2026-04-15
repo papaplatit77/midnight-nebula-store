@@ -103,3 +103,12 @@
   transition: all 0.2s;
 }
 .viewBtn:hover { background: rgba(179,0,255,0.15); border-color: rgba(179,0,255,0.3); color: #f0f0f0; }
+.deleteBtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.15);
+  border-radius: 8px; font-size: 14px; cursor: pointer;
+  transition: all 0.2s;
+}
+.deleteBtn:hover { background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.4); }

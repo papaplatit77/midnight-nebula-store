@@ -532,6 +532,41 @@ app.patch('/api/admin/orders/:orderId/status', (req, res) => {
   res.json({ ok: true });
 });
 
+// Удалить заказ
+app.delete('/api/admin/orders/:orderId', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (process.env.ADMIN_SECRET && secret !== process.env.ADMIN_SECRET)
+    return res.status(401).json({ error: 'Unauthorized' });
+  const { orderId } = req.params;
+  const db = loadDB();
+  let found = false;
+  for (const userId of Object.keys(db.orders || {})) {
+    const idx = db.orders[userId].findIndex(o => String(o.id) === String(orderId));
+    if (idx !== -1) {
+      db.orders[userId].splice(idx, 1);
+      found = true;
+      break;
+    }
+  }
+  if (!found) return res.status(404).json({ error: 'Order not found' });
+  saveDB(db);
+  res.json({ ok: true });
+});
+
+// Удалить пользователя
+app.delete('/api/admin/users/:userId', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (process.env.ADMIN_SECRET && secret !== process.env.ADMIN_SECRET)
+    return res.status(401).json({ error: 'Unauthorized' });
+  const { userId } = req.params;
+  const db = loadDB();
+  delete db.users[userId];
+  delete db.orders[userId];
+  delete db.bans[userId];
+  saveDB(db);
+  res.json({ ok: true });
+});
+
 app.get('/health', (_req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
 
 app.listen(PORT, () => {

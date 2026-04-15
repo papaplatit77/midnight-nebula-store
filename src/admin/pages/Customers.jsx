@@ -3,7 +3,7 @@ import { useAdmin } from '../context/AdminContext';
 import styles from './Customers.module.css';
 
 export default function Customers() {
-  const { customers, orders } = useAdmin();
+  const { customers, orders, deleteUser } = useAdmin();
   const [search, setSearch] = useState('');
 
   const filtered = customers.filter(c =>
@@ -50,6 +50,7 @@ export default function Customers() {
             <div className={styles.th}>Город</div>
             <div className={styles.th} style={{ textAlign: 'center' }}>Заказов</div>
             <div className={styles.th} style={{ textAlign: 'right' }}>Потрачено</div>
+            <div className={styles.th}></div>
           </div>
 
           {filtered.map((c, i) => (
@@ -83,6 +84,12 @@ export default function Customers() {
               </div>
               <div className={styles.td} style={{ textAlign: 'right' }}>
                 <span className={styles.spent}>{(c.spent || 0).toFixed(2)} €</span>
+              </div>
+              <div className={styles.td}>
+                <button
+                  className={styles.deleteBtn}
+                  onClick={() => { if (confirm(`Удалить пользователя ${c.name}?`)) deleteUser(c.tgUserId); }}
+                >🗑</button>
               </div>
             </div>
           ))}

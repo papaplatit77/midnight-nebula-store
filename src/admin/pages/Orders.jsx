@@ -15,7 +15,7 @@ const STATUS_COLOR = { new: '#d966ff', processing: '#60a5fa', shipped: '#a78bfa'
 const STATUS_LABEL = { new: 'Новый', processing: 'В обработке', shipped: 'Отправлен', delivered: 'Доставлен' };
 
 export default function Orders() {
-  const { orders, updateOrderStatus } = useAdmin();
+  const { orders, updateOrderStatus, deleteOrder } = useAdmin();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -107,8 +107,12 @@ export default function Orders() {
                   ))}
                 </select>
               </div>
-              <div className={styles.td}>
+              <div className={styles.td} style={{ display:'flex', gap:6 }}>
                 <Link to={`/admin/orders/${order.id}`} className={styles.viewBtn}>→</Link>
+                <button
+                  className={styles.deleteBtn}
+                  onClick={() => { if (confirm('Удалить заказ?')) deleteOrder(order.id); }}
+                >🗑</button>
               </div>
             </div>
           ))}

@@ -3,7 +3,7 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-password');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -25,6 +25,17 @@ export default async function handler(req, res) {
       if (!r.ok) return res.status(502).json({ error: 'Bot API error' });
       const data = await r.json();
       return res.status(200).json(data);
+    }
+
+    if (req.method === 'DELETE') {
+      const orderId = req.query.id;
+      if (!orderId) return res.status(400).json({ error: 'id required' });
+      const r = await fetch(`${BOT_URL}/api/admin/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-secret': ADMIN_SECRET || '' },
+      });
+      if (!r.ok) return res.status(502).json({ error: 'Bot API error' });
+      return res.status(200).json({ ok: true });
     }
 
     if (req.method === 'PATCH') {
