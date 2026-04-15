@@ -4,9 +4,9 @@ import { products as initialProducts } from '../../data/products';
 const AdminContext = createContext(null);
 
 export function AdminProvider({ children }) {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem('admin_ok') === '1');
+  const [authed, setAuthed] = useState(() => localStorage.getItem('admin_ok') === '1');
   // Пароль хранится в памяти для API-запросов (не в localStorage)
-  const adminPasswordRef = useRef(sessionStorage.getItem('admin_pw') || '');
+  const adminPasswordRef = useRef(localStorage.getItem('admin_pw') || '');
 
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
@@ -68,8 +68,8 @@ export function AdminProvider({ children }) {
         body: JSON.stringify({ password }),
       });
       if (res.ok) {
-        sessionStorage.setItem('admin_ok', '1');
-        sessionStorage.setItem('admin_pw', password);
+        localStorage.setItem('admin_ok', '1');
+        localStorage.setItem('admin_pw', password);
         adminPasswordRef.current = password;
         setAuthed(true);
         return true;
@@ -79,8 +79,8 @@ export function AdminProvider({ children }) {
   };
 
   const logout = () => {
-    sessionStorage.removeItem('admin_ok');
-    sessionStorage.removeItem('admin_pw');
+    localStorage.removeItem('admin_ok');
+    localStorage.removeItem('admin_pw');
     adminPasswordRef.current = '';
     setAuthed(false);
     setOrders([]);
