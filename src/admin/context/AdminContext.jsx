@@ -11,16 +11,19 @@ export function AdminProvider({ children }) {
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
 
-  const [products, setProducts] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dragon_products');
-      return saved ? JSON.parse(saved) : initialProducts;
-    } catch { return initialProducts; }
-  });
+  const [products, setProducts] = useState(initialProducts);
 
   const [couriers, setCouriers] = useState(() => {
     try { return JSON.parse(localStorage.getItem('dragon_couriers') || '[]'); } catch { return []; }
   });
+
+  // Загружаем продукты с сервера при старте (для всех пользователей)
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { if (Array.isArray(data) && data.length > 0) setProducts(data); })
+      .catch(() => {});
+  }, []);
 
   // Нормализация заказа из разных источников в единый формат
   function normalizeOrder(o) {
@@ -50,11 +53,19 @@ export function AdminProvider({ children }) {
       .then(r => r.ok ? r.json() : [])
       .then(data => { if (Array.isArray(data)) setUsers(data); })
       .catch(() => {});
+
   }, [authed]);
 
-  useEffect(() => {
-    localStorage.setItem('dragon_products', JSON.stringify(products));
-  }, [products]);
+  // Сохраняем продукты на сервер при изменении
+  const saveProductsToServer = (updatedProducts) => {
+    const pw = adminPasswordRef.current;
+    if (!pw) return;
+    fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+      body: JSON.stringify({ products: updatedProducts }),
+    }).catch(() => {});
+  };
 
   useEffect(() => {
     localStorage.setItem('dragon_couriers', JSON.stringify(couriers));
@@ -112,15 +123,27 @@ export function AdminProvider({ children }) {
 
   const addProduct = (product) => {
     const newProduct = { ...product, id: Date.now() };
-    setProducts(prev => [newProduct, ...prev]);
+    setProducts(prev => {
+      const updated = [newProduct, ...prev];
+      saveProductsToServer(updated);
+      return updated;
+    });
   };
 
   const updateProduct = (id, data) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+    setProducts(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, ...data } : p);
+      saveProductsToServer(updated);
+      return updated;
+    });
   };
 
   const deleteProduct = (id) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+    setProducts(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      saveProductsToServer(updated);
+      return updated;
+    });
   };
 
   const addCourier = (courier) => {

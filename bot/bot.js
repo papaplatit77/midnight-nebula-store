@@ -13,7 +13,7 @@ const ADMIN_IDS  = new Set([
 ]);
 const WEBAPP_URL = process.env.WEBAPP_URL || 'https://wakashop-snowy.vercel.app';
 const PORT       = process.env.PORT || 3001;
-const DB_FILE    = path.join(__dirname, 'db.json');
+const DB_FILE    = process.env.DB_FILE || path.join(__dirname, 'db.json');
 
 // username или ссылка на аккаунт поддержки
 const SUPPORT_USERNAME = process.env.SUPPORT_USERNAME || null; // @yourname
@@ -419,6 +419,24 @@ bot.on('callback_query', async (query) => {
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
+
+// ── Продукты ──────────────────────────────────────────────────
+app.get('/api/products', (req, res) => {
+  const db = loadDB();
+  res.json(db.products || []);
+});
+
+app.post('/api/products', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (process.env.ADMIN_SECRET && secret !== process.env.ADMIN_SECRET)
+    return res.status(401).json({ error: 'Unauthorized' });
+  const { products } = req.body;
+  if (!Array.isArray(products)) return res.status(400).json({ error: 'products must be array' });
+  const db = loadDB();
+  db.products = products;
+  saveDB(db);
+  res.json({ ok: true });
+});
 
 // Сохранение заказа (вызывается из Vercel function)
 app.post('/api/save-order', (req, res) => {
