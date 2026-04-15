@@ -49,7 +49,8 @@ export default async function handler(req, res) {
 
 
 
-  const { tgUsername, tgUserId, deliveryType, city, payment, items, total, courierId } = req.body;
+  const { tgUsername, tgUserId, deliveryType, city, payment, items, total, courierId,
+          firstName, lastName, phone, email, street, plz } = req.body;
 
   // ── Валидация ─────────────────────────────────────────────────
   if (!items || !Array.isArray(items) || items.length === 0)
@@ -58,7 +59,7 @@ export default async function handler(req, res) {
   if (items.length > 30)
     return res.status(400).json({ error: 'Слишком много позиций' });
 
-  if (!ALLOWED_CITIES.has(city))
+  if (deliveryType === 'meeting' && !ALLOWED_CITIES.has(city))
     return res.status(400).json({ error: 'Недопустимый город' });
 
   if (!ALLOWED_DELIVERY.has(deliveryType))
@@ -90,11 +91,18 @@ export default async function handler(req, res) {
     .map(i => `• ${esc(i.name)} × ${Number(i.qty)} — ${(Number(i.price) * Number(i.qty)).toFixed(2)} €`)
     .join('\n');
 
+  const mailDetails = deliveryType === 'mail'
+    ? `👤 <b>${esc(firstName)} ${esc(lastName)}</b>\n` +
+      `📞 ${esc(phone)}\n` +
+      `📧 ${esc(email)}\n` +
+      `🏠 ${esc(street)}, ${esc(plz)} ${esc(city)}\n`
+    : `📍 ${esc(city)}\n`;
+
   const text =
     `🛒 <b>НОВЫЙ ЗАКАЗ — WAKASHOP</b>\n` +
     `━━━━━━━━━━━━━━━━━━━━━\n` +
-    `👤 ${esc(tgUsername) || 'неизвестен'}${tgUserId ? ` (id: ${tgUserId})` : ''}\n` +
-    `📍 ${esc(city)}\n` +
+    `✈️ ${esc(tgUsername) || 'неизвестен'}${tgUserId ? ` (id: ${tgUserId})` : ''}\n` +
+    mailDetails +
     `🚚 ${deliveryLabel}\n` +
     `💰 ${paymentLabel}\n` +
     `━━━━━━━━━━━━━━━━━━━━━\n` +
@@ -143,12 +151,14 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           tgUserId,
           tgUsername: tgUsername || 'неизвестен',
+          name: deliveryType === 'mail' ? `${firstName} ${lastName}`.trim() : tgUsername,
           deliveryType,
           city,
           payment,
           items,
           total,
           status: 'new',
+          ...(deliveryType === 'mail' && { firstName, lastName, phone, email, address: `${street}, ${plz} ${city}` }),
         }),
       });
     } catch (_) {}

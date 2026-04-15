@@ -52,7 +52,11 @@ export default function OrderModal({ onClose }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [street, setStreet] = useState('');
+  const [plz, setPlz] = useState('');
   const [deliveryCity, setDeliveryCity] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [search, setSearch] = useState('');
   const [activeCat, setActiveCat] = useState('all');
   const [activeFlavor, setActiveFlavor] = useState('all');
@@ -77,7 +81,29 @@ export default function OrderModal({ onClose }) {
   const shippingCost = deliveryType === 'mail' && mailOption ? MAIL_COSTS[mailOption] : 0;
   const grandTotal = total + shippingCost;
 
-  const mailFieldsFilled = firstName.trim() && lastName.trim() && phone.trim() && deliveryCity.trim();
+  const latinOnly = /^[a-zA-Z\s\-]+$/;
+  const germanPhone = /^(\+49|0)[1-9][0-9]{9,13}$/;
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateMailFields = () => {
+    const errs = {};
+    if (!firstName.trim()) errs.firstName = 'Обязательное поле';
+    else if (!latinOnly.test(firstName.trim())) errs.firstName = 'Только латиница';
+    if (!lastName.trim()) errs.lastName = 'Обязательное поле';
+    else if (!latinOnly.test(lastName.trim())) errs.lastName = 'Только латиница';
+    if (!phone.trim()) errs.phone = 'Обязательное поле';
+    else if (!germanPhone.test(phone.replace(/\s/g, ''))) errs.phone = '+49 или 0... (10-15 цифр)';
+    if (!email.trim()) errs.email = 'Обязательное поле';
+    else if (!validEmail.test(email.trim())) errs.email = 'Неверный email';
+    if (!street.trim()) errs.street = 'Укажите улицу и дом';
+    if (!plz.trim()) errs.plz = 'Укажите PLZ';
+    else if (!/^\d{5}$/.test(plz.trim())) errs.plz = '5 цифр, например 50667';
+    if (!deliveryCity.trim()) errs.deliveryCity = 'Укажите город';
+    return errs;
+  };
+
+  const mailFieldsFilled = firstName.trim() && lastName.trim() && phone.trim()
+    && email.trim() && street.trim() && plz.trim() && deliveryCity.trim();
   const canNext = deliveryType && payment
     && (deliveryType === 'meeting'
       ? city
@@ -130,6 +156,9 @@ export default function OrderModal({ onClose }) {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           phone: phone.trim(),
+          email: email.trim(),
+          street: street.trim(),
+          plz: plz.trim(),
         }),
         payment,
         items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
@@ -243,45 +272,84 @@ export default function OrderModal({ onClose }) {
               <>
                 <div className={styles.fieldRow}>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Имя</label>
+                    <label className={styles.fieldLabel}>Имя (латиница)</label>
                     <input
-                      className={styles.textInput}
+                      className={`${styles.textInput} ${fieldErrors.firstName ? styles.inputError : ''}`}
                       type="text"
-                      placeholder="Иван"
+                      placeholder="Ivan"
                       value={firstName}
-                      onChange={e => setFirstName(e.target.value)}
+                      onChange={e => { setFirstName(e.target.value); setFieldErrors(p => ({...p, firstName: ''})); }}
                     />
+                    {fieldErrors.firstName && <span className={styles.fieldErr}>{fieldErrors.firstName}</span>}
                   </div>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Фамилия</label>
+                    <label className={styles.fieldLabel}>Фамилия (латиница)</label>
                     <input
-                      className={styles.textInput}
+                      className={`${styles.textInput} ${fieldErrors.lastName ? styles.inputError : ''}`}
                       type="text"
                       placeholder="Müller"
                       value={lastName}
-                      onChange={e => setLastName(e.target.value)}
+                      onChange={e => { setLastName(e.target.value); setFieldErrors(p => ({...p, lastName: ''})); }}
                     />
+                    {fieldErrors.lastName && <span className={styles.fieldErr}>{fieldErrors.lastName}</span>}
                   </div>
                 </div>
                 <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Номер телефона</label>
+                  <label className={styles.fieldLabel}>Телефон (+49...)</label>
                   <input
-                    className={styles.textInput}
+                    className={`${styles.textInput} ${fieldErrors.phone ? styles.inputError : ''}`}
                     type="tel"
                     placeholder="+49 151 00000000"
                     value={phone}
-                    onChange={e => setPhone(e.target.value)}
+                    onChange={e => { setPhone(e.target.value); setFieldErrors(p => ({...p, phone: ''})); }}
                   />
+                  {fieldErrors.phone && <span className={styles.fieldErr}>{fieldErrors.phone}</span>}
                 </div>
                 <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Город доставки</label>
+                  <label className={styles.fieldLabel}>Email</label>
                   <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="Köln"
-                    value={deliveryCity}
-                    onChange={e => setDeliveryCity(e.target.value)}
+                    className={`${styles.textInput} ${fieldErrors.email ? styles.inputError : ''}`}
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={e => { setEmail(e.target.value); setFieldErrors(p => ({...p, email: ''})); }}
                   />
+                  {fieldErrors.email && <span className={styles.fieldErr}>{fieldErrors.email}</span>}
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Улица и номер дома</label>
+                  <input
+                    className={`${styles.textInput} ${fieldErrors.street ? styles.inputError : ''}`}
+                    type="text"
+                    placeholder="Musterstraße 12"
+                    value={street}
+                    onChange={e => { setStreet(e.target.value); setFieldErrors(p => ({...p, street: ''})); }}
+                  />
+                  {fieldErrors.street && <span className={styles.fieldErr}>{fieldErrors.street}</span>}
+                </div>
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>PLZ (индекс)</label>
+                    <input
+                      className={`${styles.textInput} ${fieldErrors.plz ? styles.inputError : ''}`}
+                      type="text"
+                      placeholder="50667"
+                      value={plz}
+                      onChange={e => { setPlz(e.target.value); setFieldErrors(p => ({...p, plz: ''})); }}
+                    />
+                    {fieldErrors.plz && <span className={styles.fieldErr}>{fieldErrors.plz}</span>}
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Город</label>
+                    <input
+                      className={`${styles.textInput} ${fieldErrors.deliveryCity ? styles.inputError : ''}`}
+                      type="text"
+                      placeholder="Köln"
+                      value={deliveryCity}
+                      onChange={e => { setDeliveryCity(e.target.value); setFieldErrors(p => ({...p, deliveryCity: ''})); }}
+                    />
+                    {fieldErrors.deliveryCity && <span className={styles.fieldErr}>{fieldErrors.deliveryCity}</span>}
+                  </div>
                 </div>
               </>
             )}
@@ -354,7 +422,14 @@ export default function OrderModal({ onClose }) {
             <button
               className={`${styles.nextBtn} ${canNext ? styles.nextBtnActive : ''}`}
               disabled={!canNext}
-              onClick={() => setStep(2)}
+              onClick={() => {
+                if (deliveryType === 'mail') {
+                  const errs = validateMailFields();
+                  if (Object.keys(errs).length) { setFieldErrors(errs); return; }
+                  setFieldErrors({});
+                }
+                setStep(2);
+              }}
             >
               {canNext ? 'ДАЛЬШЕ — ВЫБРАТЬ ТОВАРЫ →' : 'Заполните все поля'}
             </button>
