@@ -136,20 +136,22 @@ export default async function handler(req, res) {
   // ── Сохранение заказа в БД бота (Railway) ────────────────────
   const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';
   if (tgUserId) {
-    fetch(`${BOT_URL}/api/save-order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tgUserId,
-        tgUsername: tgUsername || 'неизвестен',
-        deliveryType,
-        city,
-        payment,
-        items,
-        total,
-        status: 'new',
-      }),
-    }).catch(() => {});
+    try {
+      await fetch(`${BOT_URL}/api/save-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tgUserId,
+          tgUsername: tgUsername || 'неизвестен',
+          deliveryType,
+          city,
+          payment,
+          items,
+          total,
+          status: 'new',
+        }),
+      });
+    } catch (_) {}
   }
 
   return res.status(200).json({ ok: true });
