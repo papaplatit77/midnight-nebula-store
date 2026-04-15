@@ -133,5 +133,24 @@ export default async function handler(req, res) {
     ).catch(() => {});
   }
 
+  // ── Сохранение заказа в БД бота (Railway) ────────────────────
+  const BOT_URL = process.env.BOT_API_URL;
+  if (BOT_URL && tgUserId) {
+    fetch(`${BOT_URL}/api/save-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tgUserId,
+        tgUsername: tgUsername || 'неизвестен',
+        deliveryType,
+        city,
+        payment,
+        items,
+        total,
+        status: 'new',
+      }),
+    }).catch(() => {});
+  }
+
   return res.status(200).json({ ok: true });
 }

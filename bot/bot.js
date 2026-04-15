@@ -11,7 +11,7 @@ const ADMIN_IDS  = new Set([
   ADMIN_ID,
   ...((process.env.EXTRA_ADMINS || '').split(',').map(s => Number(s.trim())).filter(Boolean)),
 ]);
-const WEBAPP_URL = process.env.WEBAPP_URL || 'https://site-beige-sigma-46.vercel.app';
+const WEBAPP_URL = process.env.WEBAPP_URL || 'https://wakashop-snowy.vercel.app';
 const PORT       = process.env.PORT || 3001;
 const DB_FILE    = path.join(__dirname, 'db.json');
 
@@ -79,6 +79,7 @@ const ADMIN_KB = {
 
 const USER_KB = {
   keyboard: [
+    [{ text: '🛍 Открыть магазин', web_app: { url: WEBAPP_URL } }],
     [{ text: '🛍 Мои заказы' }, { text: 'ℹ️ О нас'   }],
     [{ text: '🆘 Поддержка'  }, { text: '📦 Опт'     }],
     [{ text: '🏙 Города: Курьеры' }],
@@ -439,6 +440,42 @@ app.post('/api/order', async (req, res) => {
     console.error('Ошибка:', err.message);
     res.status(500).json({ error: 'Не удалось отправить заказ' });
   }
+});
+
+// Получить все заказы для админки (защищённый endpoint)
+app.get('/api/admin/orders', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET)
+    return res.status(401).json({ error: 'Unauthorized' });
+  const db = loadDB();
+  const allOrders = Object.entries(db.orders || {}).flatMap(([userId, orders]) =>
+    orders.map(o => ({ ...o, tgUserId: Number(userId) }))
+  );
+  allOrders.sort((a, b) => b.id - a.id);
+  res.json(allOrders);
+});
+
+// Обновить статус заказа
+app.patch('/api/admin/orders/:orderId/status', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET)
+    return res.status(401).json({ error: 'Unauthorized' });
+  const { orderId } = req.params;
+  const { status } = req.body;
+  if (!status) return res.status(400).json({ error: 'status required' });
+  const db = loadDB();
+  let found = false;
+  for (const userId of Object.keys(db.orders || {})) {
+    const idx = db.orders[userId].findIndex(o => String(o.id) === String(orderId));
+    if (idx !== -1) {
+      db.orders[userId][idx].status = status;
+      found = true;
+      break;
+    }
+  }
+  if (!found) return res.status(404).json({ error: 'Order not found' });
+  saveDB(db);
+  res.json({ ok: true });
 });
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', uptime: process.uptime() }));

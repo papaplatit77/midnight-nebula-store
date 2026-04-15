@@ -1,14 +1,14 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { products as initialProducts } from '../../data/products';
 
 const AdminContext = createContext(null);
 
 export function AdminProvider({ children }) {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('admin_ok') === '1');
+  // Пароль хранится в памяти для API-запросов (не в localStorage)
+  const adminPasswordRef = useRef(sessionStorage.getItem('admin_pw') || '');
 
-  const [orders, setOrders] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('dragon_orders') || '[]'); } catch { return []; }
-  });
+  const [orders, setOrders] = useState([]);
 
   const [products, setProducts] = useState(() => {
     try {
@@ -21,9 +21,16 @@ export function AdminProvider({ children }) {
     try { return JSON.parse(localStorage.getItem('dragon_couriers') || '[]'); } catch { return []; }
   });
 
+  // Загружаем заказы из API бота при входе
   useEffect(() => {
-    localStorage.setItem('dragon_orders', JSON.stringify(orders));
-  }, [orders]);
+    if (!authed) return;
+    const pw = adminPasswordRef.current;
+    if (!pw) return;
+    fetch('/api/orders', { headers: { 'x-admin-password': pw } })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { if (Array.isArray(data) && data.length > 0) setOrders(data); })
+      .catch(() => {});
+  }, [authed]);
 
   useEffect(() => {
     localStorage.setItem('dragon_products', JSON.stringify(products));
@@ -42,6 +49,8 @@ export function AdminProvider({ children }) {
       });
       if (res.ok) {
         sessionStorage.setItem('admin_ok', '1');
+        sessionStorage.setItem('admin_pw', password);
+        adminPasswordRef.current = password;
         setAuthed(true);
         return true;
       }
@@ -51,7 +60,10 @@ export function AdminProvider({ children }) {
 
   const logout = () => {
     sessionStorage.removeItem('admin_ok');
+    sessionStorage.removeItem('admin_pw');
+    adminPasswordRef.current = '';
     setAuthed(false);
+    setOrders([]);
   };
 
   const addOrder = (order) => {
@@ -65,8 +77,17 @@ export function AdminProvider({ children }) {
     return newOrder;
   };
 
-  const updateOrderStatus = (id, status) => {
+  const updateOrderStatus = async (id, status) => {
+    // Обновляем локально сразу
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
+    // Сохраняем в API
+    const pw = adminPasswordRef.current;
+    if (!pw) return;
+    fetch(`/api/orders?id=${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+      body: JSON.stringify({ status }),
+    }).catch(() => {});
   };
 
   const addProduct = (product) => {
