@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   const password = req.headers['x-admin-password'];
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-  if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD)
+  if (ADMIN_PASSWORD && password !== ADMIN_PASSWORD)
     return res.status(401).json({ error: 'Unauthorized' });
 
   const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';

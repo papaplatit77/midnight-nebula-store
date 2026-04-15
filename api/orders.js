@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   // Проверяем пароль администратора
   const password = req.headers['x-admin-password'];
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-  if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD) {
+  if (ADMIN_PASSWORD && password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

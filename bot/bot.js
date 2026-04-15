@@ -465,7 +465,7 @@ app.post('/api/order', async (req, res) => {
 // Получить всех пользователей для админки
 app.get('/api/admin/users', (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET)
+  if (process.env.ADMIN_SECRET && secret !== process.env.ADMIN_SECRET)
     return res.status(401).json({ error: 'Unauthorized' });
   const db = loadDB();
   const users = Object.values(db.users || {}).map(u => ({
@@ -481,7 +481,7 @@ app.get('/api/admin/users', (req, res) => {
 // Получить все заказы для админки (защищённый endpoint)
 app.get('/api/admin/orders', (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET)
+  if (process.env.ADMIN_SECRET && secret !== process.env.ADMIN_SECRET)
     return res.status(401).json({ error: 'Unauthorized' });
   const db = loadDB();
   const allOrders = Object.entries(db.orders || {}).flatMap(([userId, orders]) =>
@@ -494,7 +494,7 @@ app.get('/api/admin/orders', (req, res) => {
 // Обновить статус заказа
 app.patch('/api/admin/orders/:orderId/status', (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET)
+  if (process.env.ADMIN_SECRET && secret !== process.env.ADMIN_SECRET)
     return res.status(401).json({ error: 'Unauthorized' });
   const { orderId } = req.params;
   const { status } = req.body;
