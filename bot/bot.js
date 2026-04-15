@@ -25,6 +25,27 @@ if (!BOT_TOKEN || !ADMIN_ID) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// ── Системная кнопка меню (Mini App) ─────────────────────────
+async function setMenuButton() {
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/setChatMenuButton`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        menu_button: {
+          type: 'web_app',
+          text: '🛍 Магазин',
+          web_app: { url: WEBAPP_URL },
+        },
+      }),
+    });
+    console.log('✅ Кнопка меню установлена');
+  } catch (e) {
+    console.error('❌ Ошибка установки кнопки меню:', e.message);
+  }
+}
+setMenuButton();
+
 // ── БД ───────────────────────────────────────────────────────
 function loadDB() {
   try { return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); }
@@ -79,7 +100,6 @@ const ADMIN_KB = {
 
 const USER_KB = {
   keyboard: [
-    [{ text: '🛍 Открыть магазин', web_app: { url: WEBAPP_URL } }],
     [{ text: '🛍 Мои заказы' }, { text: 'ℹ️ О нас'   }],
     [{ text: '🆘 Поддержка'  }, { text: '📦 Опт'     }],
     [{ text: '🏙 Города: Курьеры' }],
