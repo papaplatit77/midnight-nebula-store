@@ -1,5 +1,14 @@
 import styles from './Contacts.module.css';
 
+function openTg(username) {
+  const tg = window.Telegram?.WebApp;
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(`https://t.me/${username}`);
+  } else {
+    window.open(`https://t.me/${username}`, '_blank', 'noopener');
+  }
+}
+
 export default function Contacts() {
   return (
     <main className={styles.page}>
@@ -22,10 +31,8 @@ export default function Contacts() {
             <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', marginBottom: '28px', lineHeight: 1.6 }}>
               Мы отвечаем быстро — по любым вопросам заказов, доставки и сотрудничества.
             </p>
-            <a
-              href="https://t.me/Manager_NRW_1"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => openTg('Manager_NRW_1')}
               style={{
                 display: 'inline-block',
                 background: 'linear-gradient(135deg, #b300ff, #7c00d4)',
@@ -35,7 +42,8 @@ export default function Contacts() {
                 letterSpacing: '1px',
                 padding: '14px 32px',
                 borderRadius: '12px',
-                textDecoration: 'none',
+                border: 'none',
+                cursor: 'pointer',
                 boxShadow: '0 0 24px rgba(179,0,255,0.4)',
                 transition: 'opacity 0.2s',
               }}
@@ -43,7 +51,7 @@ export default function Contacts() {
               onMouseOut={e => e.currentTarget.style.opacity = '1'}
             >
               @Manager_NRW_1
-            </a>
+            </button>
           </div>
         </div>
       </div>

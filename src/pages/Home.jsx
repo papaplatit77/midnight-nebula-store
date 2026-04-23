@@ -3,6 +3,17 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import OrderModal from '../components/OrderModal';
 import styles from './Home.module.css';
 
+const MANAGER_TG = 'Manager_NRW_1';
+
+function openTg(username) {
+  const tg = window.Telegram?.WebApp;
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(`https://t.me/${username}`);
+  } else {
+    window.open(`https://t.me/${username}`, '_blank', 'noopener');
+  }
+}
+
 const REVIEWS = [
   { id: 1, name: 'Max S.',    city: 'Dortmund',   avatar: 'MS', color: '#7c00d4', rating: 5, text: 'Лучший шоп в NRW! Всё быстро, качество топ. Уже 3-й заказ подряд, ни разу не разочаровал.' },
   { id: 2, name: 'Anya K.',   city: 'Köln',        avatar: 'AK', color: '#b300ff', rating: 5, text: 'Elfbar пришёл за день, всё запаковано как надо. Буду ещё заказывать, однозначно 🔥' },
@@ -48,14 +59,12 @@ export default function Home() {
             <span className={styles.orderBtnInner}>ЗАКАЗАТЬ</span>
             <span className={styles.orderBtnGlow} />
           </button>
-          <a
-            href="https://t.me/Manager_NRW_1"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
             className={styles.wholesaleBtn}
+            onClick={() => openTg(MANAGER_TG)}
           >
             ОПТОМ
-          </a>
+          </button>
           <p className={styles.heroHint}>Доставка по NRW · Личная встреча · Почта</p>
         </div>
         <div className={styles.heroScroll}>
@@ -83,14 +92,12 @@ export default function Home() {
                 <button className={styles.whoBtn} onClick={() => setOrderOpen(true)}>
                   Сделать заказ →
                 </button>
-                <a
-                  href="https://t.me/Manager_NRW_1"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
                   className={styles.subscribeBtn}
+                  onClick={() => openTg(MANAGER_TG)}
                 >
                   ПОДПИСАТЬСЯ
-                </a>
+                </button>
               </div>
             </div>
             <div className={styles.whoStats}>
