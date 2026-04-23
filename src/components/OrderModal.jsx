@@ -18,25 +18,7 @@ const CITIES = [
   'Leipzig','Bremen','Hannover','Nürnberg','Dresden',
 ];
 
-const FLAVOR_GROUPS = [
-  { id: 'all',     label: 'Все вкусы',  keywords: [] },
-  { id: 'berry',   label: '🍓 Ягоды',   keywords: ['strawberry','blueberry','raspberry','cherry','клубника','черника','малина','вишня','ягод'] },
-  { id: 'fruit',   label: '🍑 Фрукты',  keywords: ['mango','watermelon','peach','apple','melon','pineapple','kiwi','манго','арбуз','персик','яблок','дын','ананас','киви'] },
-  { id: 'ice',     label: '❄️ Лёд',     keywords: ['ice','mint','menthol','лёд','мент','холод'] },
-  { id: 'drinks',  label: '🥤 Напитки', keywords: ['cola','lemon','lemonade','energy','кола','лимон','лимонад','энергетик'] },
-  { id: 'dessert', label: '🍰 Десерты', keywords: ['tart','cake','cream','vanilla','десерт','торт','пирог','крем','ваниль'] },
-  { id: 'tobacco', label: '🌿 Табак',   keywords: ['tobacco','табак'] },
-];
-
 const CAT_EMOJI = { disposable:'💨', pods:'🔌', liquids:'💧', accessories:'⚙️' };
-
-function matchFlavor(product, groupId) {
-  if (groupId === 'all') return true;
-  const group = FLAVOR_GROUPS.find(g => g.id === groupId);
-  if (!group) return false;
-  const text = (product.name + ' ' + (product.description || '')).toLowerCase();
-  return group.keywords.some(kw => text.includes(kw));
-}
 
 export default function OrderModal({ onClose }) {
   const { add, items, total, count, clear } = useCart();
@@ -59,7 +41,6 @@ export default function OrderModal({ onClose }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [search, setSearch] = useState('');
   const [activeCat, setActiveCat] = useState('all');
-  const [activeFlavor, setActiveFlavor] = useState('all');
   const [addedMap, setAddedMap] = useState({});
   const [visible, setVisible] = useState(false);
   const [sending, setSending] = useState(false);
@@ -76,6 +57,12 @@ export default function OrderModal({ onClose }) {
   }, []);
 
   const courierForCity = city ? (couriersList.find(c => c.cities && c.cities.includes(city)) || null) : null;
+
+  // Города с назначенными курьерами (для встречи)
+  const citiesWithCouriers = useMemo(() => {
+    const assigned = new Set(couriersList.flatMap(c => c.cities || []));
+    return CITIES.filter(c => assigned.has(c));
+  }, [couriersList]);
 
   const MAIL_COSTS = { track: 6.20, notrack: 4.19 };
   const shippingCost = deliveryType === 'mail' && mailOption ? MAIL_COSTS[mailOption] : 0;
@@ -122,12 +109,21 @@ export default function OrderModal({ onClose }) {
 
   const filtered = useMemo(() => {
     return products.filter(p => {
+      // Фильтр по типу доставки
+      if (deliveryType === 'mail') {
+        // Только товары, доступные для почты (shippable)
+        if (p.shippable === false) return false;
+      } else if (deliveryType === 'meeting' && courierForCity) {
+        // Только товары из склада курьера
+        if (courierForCity.productIds && courierForCity.productIds.length > 0) {
+          if (!courierForCity.productIds.includes(p.id)) return false;
+        }
+      }
       if (activeCat !== 'all' && p.category !== activeCat) return false;
-      if (!matchFlavor(p, activeFlavor)) return false;
       if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [products, activeCat, activeFlavor, search]);
+  }, [products, activeCat, search, deliveryType, courierForCity]);
 
   const handleAdd = (product) => {
     add(product, 1);
@@ -354,26 +350,25 @@ export default function OrderModal({ onClose }) {
               </>
             )}
 
-            {/* Город — только для личной встречи (для курьера) */}
+            {/* Город — только для личной встречи (только города с курьерами) */}
             {deliveryType !== 'mail' && (
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Город</label>
-                <div className={styles.selectWrap}>
-                  <select
-                    className={styles.select}
-                    value={city}
-                    onChange={e => setCity(e.target.value)}
-                  >
-                    <option value="">Выберите город...</option>
-                    <optgroup label="NRW">
-                      {CITIES.slice(0, 30).map(c => <option key={c} value={c}>{c}</option>)}
-                    </optgroup>
-                    <optgroup label="Другие города">
-                      {CITIES.slice(30).map(c => <option key={c} value={c}>{c}</option>)}
-                    </optgroup>
-                  </select>
-                  <span className={styles.selectArrow}>▾</span>
-                </div>
+                {citiesWithCouriers.length === 0 ? (
+                  <p className={styles.noCitiesNote}>Нет доступных городов. Добавьте курьеров в админ-панели.</p>
+                ) : (
+                  <div className={styles.selectWrap}>
+                    <select
+                      className={styles.select}
+                      value={city}
+                      onChange={e => { setCity(e.target.value); }}
+                    >
+                      <option value="">Выберите город...</option>
+                      {citiesWithCouriers.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <span className={styles.selectArrow}>▾</span>
+                  </div>
+                )}
                 {courierForCity && (
                   <div className={styles.courierHint}>
                     🚗 Ваш курьер: <strong>{courierForCity.name}</strong>
@@ -445,7 +440,7 @@ export default function OrderModal({ onClose }) {
                 <span className={styles.step2Tag}>
                   {deliveryType === 'meeting' ? '🤝 Встреча' : mailOption === 'track' ? '📦 Почта+трек' : '✉️ Почта'}
                 </span>
-                <span className={styles.step2Tag}>📍 {city}</span>
+                <span className={styles.step2Tag}>📍 {deliveryType === 'mail' ? deliveryCity : city}</span>
                 <span className={styles.step2Tag}>{payment === 'card' ? '💳 Карта' : '💵 Нал'}</span>
               </div>
             </div>
@@ -479,22 +474,6 @@ export default function OrderModal({ onClose }) {
                   >
                     {cat.id !== 'all' && <span>{CAT_EMOJI[cat.id]}</span>}
                     {cat.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Вкусы */}
-            <div className={styles.filterSection}>
-              <p className={styles.filterLabel}>Вкус / Группа</p>
-              <div className={styles.filterRow}>
-                {FLAVOR_GROUPS.map(f => (
-                  <button
-                    key={f.id}
-                    className={`${styles.filterChip} ${activeFlavor === f.id ? styles.filterChipActive : ''}`}
-                    onClick={() => setActiveFlavor(f.id)}
-                  >
-                    {f.label}
                   </button>
                 ))}
               </div>

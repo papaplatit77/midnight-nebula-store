@@ -110,8 +110,12 @@ const USER_KB = {
 
 // ── Курьеры ───────────────────────────────────────────────────
 function getCouriers() {
-  try { return JSON.parse(process.env.COURIERS_JSON || '[]'); }
-  catch { return []; }
+  try {
+    const db = loadDB();
+    if (Array.isArray(db.couriers) && db.couriers.length > 0) return db.couriers;
+    // Fallback к env var для обратной совместимости
+    return JSON.parse(process.env.COURIERS_JSON || '[]');
+  } catch { return []; }
 }
 
 function buildCitiesKeyboard() {
@@ -418,7 +422,24 @@ bot.on('callback_query', async (query) => {
 // ── Express API ───────────────────────────────────────────────
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '5mb' }));
+
+// ── Курьеры (API) ─────────────────────────────────────────────
+app.get('/api/couriers', (req, res) => {
+  res.json(getCouriers());
+});
+
+app.post('/api/couriers', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (process.env.ADMIN_SECRET && secret !== process.env.ADMIN_SECRET)
+    return res.status(401).json({ error: 'Unauthorized' });
+  const { couriers } = req.body;
+  if (!Array.isArray(couriers)) return res.status(400).json({ error: 'couriers must be array' });
+  const db = loadDB();
+  db.couriers = couriers;
+  saveDB(db);
+  res.json({ ok: true });
+});
 
 // ── Продукты ──────────────────────────────────────────────────
 app.get('/api/products', (req, res) => {

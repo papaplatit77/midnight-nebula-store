@@ -164,6 +164,15 @@
 }
 .courierHint strong { color: #d966ff; }
 
+.noCitiesNote {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
+
 /* Ряд из двух полей (имя + фамилия) */
 .fieldRow {
   display: grid;

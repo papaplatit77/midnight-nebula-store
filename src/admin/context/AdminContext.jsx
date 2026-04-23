@@ -17,6 +17,19 @@ export function AdminProvider({ children }) {
     try { return JSON.parse(localStorage.getItem('dragon_couriers') || '[]'); } catch { return []; }
   });
 
+  // Загружаем курьеров с сервера при старте
+  useEffect(() => {
+    fetch('/api/couriers')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setCouriers(data);
+          localStorage.setItem('dragon_couriers', JSON.stringify(data));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Загружаем продукты с сервера при старте (для всех пользователей)
   useEffect(() => {
     fetch('/api/products')
@@ -88,9 +101,16 @@ export function AdminProvider({ children }) {
     }).catch(() => {});
   };
 
-  useEffect(() => {
-    localStorage.setItem('dragon_couriers', JSON.stringify(couriers));
-  }, [couriers]);
+  const saveCouriersToServer = (updatedCouriers) => {
+    const pw = adminPasswordRef.current;
+    localStorage.setItem('dragon_couriers', JSON.stringify(updatedCouriers));
+    if (!pw) return;
+    fetch('/api/couriers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+      body: JSON.stringify({ couriers: updatedCouriers }),
+    }).catch(() => {});
+  };
 
   const login = async (password) => {
     try {
@@ -189,15 +209,27 @@ export function AdminProvider({ children }) {
   };
 
   const addCourier = (courier) => {
-    setCouriers(prev => [...prev, { ...courier, id: Date.now() }]);
+    setCouriers(prev => {
+      const updated = [...prev, { ...courier, id: Date.now() }];
+      saveCouriersToServer(updated);
+      return updated;
+    });
   };
 
   const updateCourier = (id, data) => {
-    setCouriers(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
+    setCouriers(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, ...data } : c);
+      saveCouriersToServer(updated);
+      return updated;
+    });
   };
 
   const deleteCourier = (id) => {
-    setCouriers(prev => prev.filter(c => c.id !== id));
+    setCouriers(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      saveCouriersToServer(updated);
+      return updated;
+    });
   };
 
   // Находит курьера по городу (для OrderModal)

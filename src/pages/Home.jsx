@@ -48,6 +48,14 @@ export default function Home() {
             <span className={styles.orderBtnInner}>ЗАКАЗАТЬ</span>
             <span className={styles.orderBtnGlow} />
           </button>
+          <a
+            href="https://t.me/Manager_NRW_1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.wholesaleBtn}
+          >
+            ОПТОМ
+          </a>
           <p className={styles.heroHint}>Доставка по NRW · Личная встреча · Почта</p>
         </div>
         <div className={styles.heroScroll}>
@@ -65,17 +73,25 @@ export default function Home() {
             <div className={styles.whoText}>
               <h2>Один из топов <span>NRW</span></h2>
               <p>
-                Жидкости и под-системы, одноразки и картриджи — в наличии
-                всегда актуальный ассортимент для твоих предпочтений.
-                Работаем честно, без скрытых наценок и задержек.
+                Работаем честно — актуальный ассортимент, быстрая доставка
+                и сотни довольных клиентов, которые возвращаются снова.
               </p>
-              <p>
-                За нас говорят сотни повторных заказов от тех, кто уже
-                получил, проверил и вернулся снова.
+              <p className={styles.notifyTeaser}>
+                Ждёшь любимый товар? Включи уведомления и получай новости о поставках!
               </p>
-              <button className={styles.whoBtn} onClick={() => setOrderOpen(true)}>
-                Сделать заказ →
-              </button>
+              <div className={styles.whoActions}>
+                <button className={styles.whoBtn} onClick={() => setOrderOpen(true)}>
+                  Сделать заказ →
+                </button>
+                <a
+                  href="https://t.me/Manager_NRW_1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.subscribeBtn}
+                >
+                  ПОДПИСАТЬСЯ
+                </a>
+              </div>
             </div>
             <div className={styles.whoStats}>
               <div className={styles.statBox}>

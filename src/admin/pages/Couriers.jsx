@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useAdmin } from '../context/AdminContext';
 import styles from './Couriers.module.css';
 
 const ALL_CITIES = [
@@ -11,24 +12,15 @@ const ALL_CITIES = [
   'Leipzig','Bremen','Hannover','Nürnberg','Dresden',
 ];
 
-const EMPTY = { name: '', chatId: '', cities: [] };
+const EMPTY = { name: '', chatId: '', cities: [], productIds: [] };
 
 export default function Couriers() {
-  const [couriers, setCouriers] = useState([]);
-  const [form, setForm]         = useState(EMPTY);
-  const [editId, setEditId]     = useState(null);
-  const [confirm, setConfirm]   = useState(null);
-  const [open, setOpen]         = useState(false);
-  const [copied, setCopied]     = useState(false);
-  const [loading, setLoading]   = useState(true);
-
-  useEffect(() => {
-    fetch('/api/couriers')
-      .then(r => r.json())
-      .then(data => { if (Array.isArray(data)) setCouriers(data); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const { couriers, addCourier, updateCourier, deleteCourier, products } = useAdmin();
+  const [form, setForm]   = useState(EMPTY);
+  const [editId, setEditId] = useState(null);
+  const [confirm, setConfirm] = useState(null);
+  const [open, setOpen]   = useState(false);
+  const [tab, setTab]     = useState('cities'); // 'cities' | 'products'
 
   const takenCities = new Set(
     couriers.flatMap(c => (editId === c.id ? [] : c.cities || []))
@@ -43,31 +35,48 @@ export default function Couriers() {
     }));
   };
 
+  const toggleProduct = (id) => {
+    setForm(f => ({
+      ...f,
+      productIds: (f.productIds || []).includes(id)
+        ? (f.productIds || []).filter(p => p !== id)
+        : [...(f.productIds || []), id],
+    }));
+  };
+
   const handleSave = () => {
     if (!form.name.trim() || !form.chatId.trim()) return;
-    let updated;
+    const data = {
+      name: form.name.trim(),
+      chatId: form.chatId.trim(),
+      cities: form.cities,
+      productIds: form.productIds || [],
+    };
     if (editId !== null) {
-      updated = couriers.map(c => c.id === editId
-        ? { ...c, name: form.name.trim(), chatId: form.chatId.trim(), cities: form.cities }
-        : c
-      );
+      updateCourier(editId, data);
     } else {
-      updated = [...couriers, { id: Date.now(), name: form.name.trim(), chatId: form.chatId.trim(), cities: form.cities }];
+      addCourier(data);
     }
-    setCouriers(updated);
     setForm(EMPTY);
     setEditId(null);
     setOpen(false);
+    setTab('cities');
   };
 
   const handleEdit = (c) => {
-    setForm({ name: c.name, chatId: c.chatId, cities: c.cities || [] });
+    setForm({
+      name: c.name,
+      chatId: c.chatId,
+      cities: c.cities || [],
+      productIds: c.productIds || [],
+    });
     setEditId(c.id);
     setOpen(true);
+    setTab('cities');
   };
 
   const handleDelete = (id) => {
-    setCouriers(prev => prev.filter(c => c.id !== id));
+    deleteCourier(id);
     setConfirm(null);
   };
 
@@ -75,15 +84,7 @@ export default function Couriers() {
     setForm(EMPTY);
     setEditId(null);
     setOpen(false);
-  };
-
-  const jsonValue = JSON.stringify(couriers);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(jsonValue).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    setTab('cities');
   };
 
   return (
@@ -99,22 +100,6 @@ export default function Couriers() {
           </button>
         )}
       </div>
-
-      {/* Инструкция по сохранению */}
-      {couriers.length > 0 && (
-        <div className={styles.exportBox}>
-          <div className={styles.exportTitle}>
-            📋 После изменений — скопируй JSON и вставь в Vercel
-            <span className={styles.exportSub}>Settings → Environment Variables → COURIERS_JSON</span>
-          </div>
-          <div className={styles.exportRow}>
-            <code className={styles.exportJson}>{jsonValue}</code>
-            <button className={styles.copyBtn} onClick={handleCopy}>
-              {copied ? '✅ Скопировано' : '📋 Копировать'}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Форма добавления / редактирования */}
       {open && (
@@ -141,29 +126,80 @@ export default function Couriers() {
             </div>
           </div>
 
-          <div className={styles.citiesSection}>
-            <label className={styles.citiesLabel}>
-              Города обслуживания
-              <span className={styles.citiesSel}>{form.cities.length} выбрано</span>
-            </label>
-            <div className={styles.citiesGrid}>
-              {ALL_CITIES.map(city => {
-                const taken    = takenCities.has(city);
-                const selected = form.cities.includes(city);
-                return (
-                  <button
-                    key={city}
-                    className={`${styles.cityBtn} ${selected ? styles.citySelected : ''} ${taken && !selected ? styles.cityTaken : ''}`}
-                    onClick={() => !taken && toggleCity(city)}
-                    title={taken ? 'Город уже занят другим курьером' : ''}
-                  >
-                    {city}
-                    {taken && !selected && <span className={styles.takenMark}>✕</span>}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Вкладки: Города / Товары */}
+          <div className={styles.tabRow}>
+            <button
+              className={`${styles.tabBtn} ${tab === 'cities' ? styles.tabActive : ''}`}
+              onClick={() => setTab('cities')}
+            >
+              🏙 Города ({form.cities.length})
+            </button>
+            <button
+              className={`${styles.tabBtn} ${tab === 'products' ? styles.tabActive : ''}`}
+              onClick={() => setTab('products')}
+            >
+              📦 Склад ({(form.productIds || []).length})
+            </button>
           </div>
+
+          {/* Города */}
+          {tab === 'cities' && (
+            <div className={styles.citiesSection}>
+              <label className={styles.citiesLabel}>
+                Города обслуживания
+                <span className={styles.citiesSel}>{form.cities.length} выбрано</span>
+              </label>
+              <div className={styles.citiesGrid}>
+                {ALL_CITIES.map(city => {
+                  const taken    = takenCities.has(city);
+                  const selected = form.cities.includes(city);
+                  return (
+                    <button
+                      key={city}
+                      className={`${styles.cityBtn} ${selected ? styles.citySelected : ''} ${taken && !selected ? styles.cityTaken : ''}`}
+                      onClick={() => !taken && toggleCity(city)}
+                      title={taken ? 'Город уже занят другим курьером' : ''}
+                    >
+                      {city}
+                      {taken && !selected && <span className={styles.takenMark}>✕</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Товары (склад курьера) */}
+          {tab === 'products' && (
+            <div className={styles.citiesSection}>
+              <label className={styles.citiesLabel}>
+                Товары в наличии у курьера
+                <span className={styles.citiesSel}>{(form.productIds || []).length} выбрано</span>
+              </label>
+              {products.length === 0 ? (
+                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '13px' }}>
+                  Нет товаров. Сначала добавьте товары в каталог.
+                </p>
+              ) : (
+                <div className={styles.productsGrid}>
+                  {products.filter(p => p.inStock !== false).map(p => {
+                    const selected = (form.productIds || []).includes(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        className={`${styles.cityBtn} ${selected ? styles.citySelected : ''}`}
+                        onClick={() => toggleProduct(p.id)}
+                        title={p.name}
+                      >
+                        {p.name.length > 22 ? p.name.slice(0, 22) + '…' : p.name}
+                        {p.price && <span style={{ opacity: 0.6, fontSize: '11px', marginLeft: '4px' }}>{p.price}€</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className={styles.formActions}>
             <button className={styles.saveBtn} onClick={handleSave} disabled={!form.name.trim() || !form.chatId.trim()}>
@@ -175,13 +211,11 @@ export default function Couriers() {
       )}
 
       {/* Список курьеров */}
-      {loading ? (
-        <div className={styles.empty}><p>Загрузка...</p></div>
-      ) : couriers.length === 0 && !open ? (
+      {couriers.length === 0 && !open ? (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>🚗</div>
           <p>Курьеры не добавлены</p>
-          <p className={styles.emptyHint}>Добавьте курьера и назначьте ему города — при заказе из этого города уведомление придёт именно ему.</p>
+          <p className={styles.emptyHint}>Добавьте курьера и назначьте ему города и товары.</p>
         </div>
       ) : (
         <div className={styles.list}>
@@ -205,6 +239,16 @@ export default function Couriers() {
                   ))
                 }
               </div>
+              {(c.productIds || []).length > 0 && (
+                <div className={styles.cardProducts}>
+                  <span className={styles.noCities} style={{ marginRight: '6px' }}>📦 Товаров: {c.productIds.length}</span>
+                  {c.productIds.slice(0, 3).map(id => {
+                    const p = products.find(x => x.id === id);
+                    return p ? <span key={id} className={styles.cityTag} style={{ opacity: 0.7 }}>{p.name.length > 16 ? p.name.slice(0,16)+'…' : p.name}</span> : null;
+                  })}
+                  {c.productIds.length > 3 && <span className={styles.noCities}>+{c.productIds.length - 3} ещё</span>}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -5,46 +5,46 @@ export default function Contacts() {
     <main className={styles.page}>
       <div className={styles.inner}>
         <h1>Контакты</h1>
-        <div className={styles.grid}>
-          <div className={styles.info}>
-            <div className={styles.item}>
-              <span>📧</span>
-              <div>
-                <p className={styles.label}>Email</p>
-                <p className={styles.value}>info@vapeshop.de</p>
-              </div>
-            </div>
-            <div className={styles.item}>
-              <span>📱</span>
-              <div>
-                <p className={styles.label}>Telegram</p>
-                <p className={styles.value}>@vapeshop_de</p>
-              </div>
-            </div>
-            <div className={styles.item}>
-              <span>📍</span>
-              <div>
-                <p className={styles.label}>Адрес</p>
-                <p className={styles.value}>Berlin, Deutschland</p>
-              </div>
-            </div>
-            <div className={styles.item}>
-              <span>🕐</span>
-              <div>
-                <p className={styles.label}>Режим работы</p>
-                <p className={styles.value}>Пн–Пт: 10:00–20:00</p>
-                <p className={styles.value}>Сб–Вс: 12:00–18:00</p>
-              </div>
-            </div>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '40px' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(179,0,255,0.12), rgba(124,0,212,0.08))',
+            border: '1px solid rgba(179,0,255,0.25)',
+            borderRadius: '20px',
+            padding: '48px 40px',
+            textAlign: 'center',
+            maxWidth: '420px',
+            width: '100%',
+          }}>
+            <div style={{ fontSize: '56px', marginBottom: '20px' }}>✈️</div>
+            <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>
+              Свяжитесь с нами в Telegram
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', marginBottom: '28px', lineHeight: 1.6 }}>
+              Мы отвечаем быстро — по любым вопросам заказов, доставки и сотрудничества.
+            </p>
+            <a
+              href="https://t.me/Manager_NRW_1"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-block',
+                background: 'linear-gradient(135deg, #b300ff, #7c00d4)',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '16px',
+                letterSpacing: '1px',
+                padding: '14px 32px',
+                borderRadius: '12px',
+                textDecoration: 'none',
+                boxShadow: '0 0 24px rgba(179,0,255,0.4)',
+                transition: 'opacity 0.2s',
+              }}
+              onMouseOver={e => e.currentTarget.style.opacity = '0.85'}
+              onMouseOut={e => e.currentTarget.style.opacity = '1'}
+            >
+              @Manager_NRW_1
+            </a>
           </div>
-
-          <form className={styles.form} onSubmit={e => e.preventDefault()}>
-            <h2>Написать нам</h2>
-            <input placeholder="Ваше имя" />
-            <input type="email" placeholder="Email" />
-            <textarea rows={4} placeholder="Ваше сообщение..." />
-            <button type="submit">Отправить</button>
-          </form>
         </div>
       </div>
     </main>

@@ -14,7 +14,7 @@ const CAT_ICON = { disposable:'💨', pods:'🔋', liquids:'💧', accessories:'
 
 const EMPTY = {
   name: '', category: 'disposable', price: '', oldPrice: '',
-  puffs: '', nicotine: '', description: '', inStock: true,
+  puffs: '', nicotine: '', description: '', inStock: true, shippable: true,
   tags: [], image: null,
 };
 
@@ -258,6 +258,16 @@ export default function ProductForm() {
               </span>
               <span className={styles.stockLabel}>
                 {form.inStock ? '✓ В наличии' : '✕ Нет в наличии'}
+              </span>
+            </label>
+
+            <label className={styles.stockToggle} style={{ marginTop: '8px' }}>
+              <input type="checkbox" checked={form.shippable !== false} onChange={e => setForm(f => ({ ...f, shippable: e.target.checked }))} />
+              <span className={styles.toggleTrack}>
+                <span className={styles.toggleThumb} />
+              </span>
+              <span className={styles.stockLabel}>
+                {form.shippable !== false ? '📬 Доступен для почты' : '🚫 Только самовывоз/курьер'}
               </span>
             </label>
           </div>

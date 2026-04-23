@@ -162,6 +162,25 @@
   animation: btnShine 3s linear infinite;
 }
 
+.wholesaleBtn {
+  display: inline-block;
+  padding: 8px 24px;
+  background: transparent;
+  border: 1px solid rgba(179,0,255,0.4);
+  color: rgba(255,255,255,0.6);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s;
+  margin-top: -4px;
+}
+.wholesaleBtn:hover {
+  border-color: rgba(179,0,255,0.8);
+  color: #fff;
+}
+
 .heroHint {
   font-size: 12px;
   color: rgba(255,255,255,0.22);
@@ -222,9 +241,27 @@
   line-height: 1.8;
   margin-bottom: 12px;
 }
+.notifyTeaser {
+  font-size: 14px;
+  color: rgba(179,0,255,0.85);
+  background: rgba(179,0,255,0.08);
+  border: 1px solid rgba(179,0,255,0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  line-height: 1.6;
+  margin-bottom: 4px !important;
+}
+
+.whoActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
 .whoBtn {
   display: inline-block;
-  margin-top: 12px;
   padding: 14px 32px;
   background: linear-gradient(135deg, #b300ff, #7c00d4);
   color: #fff;
@@ -234,8 +271,28 @@
   box-shadow: 0 4px 24px rgba(179,0,255,0.45);
   transition: opacity 0.2s, transform 0.2s;
   cursor: pointer;
+  border: none;
 }
 .whoBtn:hover { opacity: 0.85; transform: translateY(-2px); }
+
+.subscribeBtn {
+  display: inline-block;
+  padding: 14px 28px;
+  background: transparent;
+  border: 1.5px solid rgba(179,0,255,0.6);
+  color: rgba(179,0,255,0.9);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.subscribeBtn:hover {
+  background: rgba(179,0,255,0.15);
+  border-color: #b300ff;
+  color: #fff;
+}
 
 .whoStats {
   display: grid;
