@@ -1,11 +1,12 @@
 import styles from './Contacts.module.css';
 
 function openTg(username) {
+  const url = `https://t.me/${username}`;
   const tg = window.Telegram?.WebApp;
-  if (tg?.openTelegramLink) {
-    tg.openTelegramLink(`https://t.me/${username}`);
+  if (tg?.openLink) {
+    tg.openLink(url);
   } else {
-    window.open(`https://t.me/${username}`, '_blank', 'noopener');
+    window.open(url, '_blank', 'noopener');
   }
 }
 

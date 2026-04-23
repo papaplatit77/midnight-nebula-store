@@ -6,11 +6,13 @@ import styles from './Home.module.css';
 const MANAGER_TG = 'Manager_NRW_1';
 
 function openTg(username) {
+  const url = `https://t.me/${username}`;
   const tg = window.Telegram?.WebApp;
-  if (tg?.openTelegramLink) {
-    tg.openTelegramLink(`https://t.me/${username}`);
+  // openLink не закрывает мини-апп (в отличие от openTelegramLink)
+  if (tg?.openLink) {
+    tg.openLink(url);
   } else {
-    window.open(`https://t.me/${username}`, '_blank', 'noopener');
+    window.open(url, '_blank', 'noopener');
   }
 }
 
