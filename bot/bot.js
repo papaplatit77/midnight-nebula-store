@@ -316,25 +316,16 @@ bot.on('message', async (msg) => {
   }
 
   if (msgText === '📦 Опт') {
-    const supportLink = SUPPORT_USERNAME
-      ? `@${SUPPORT_USERNAME.replace(/^@/, '')}`
-      : 'администратору';
     return bot.sendMessage(chatId,
-      `📦 <b>Оптовые поставки — WAKASHOP</b>\n\n` +
-      `Работаем с оптовыми клиентами по всей Германии.\n\n` +
-      `<b>Условия опта:</b>\n` +
-      `• Минимальный заказ от <b>50 штук</b>\n` +
-      `• Скидки от 15% при заказе от 100 шт\n` +
-      `• Скидки от 25% при заказе от 300 шт\n` +
-      `• Доставка по всей Германии (DHL/Hermes)\n` +
-      `• Постоянным клиентам — индивидуальные условия\n\n` +
-      `<b>Ассортимент:</b> Elf Bar, Vozol, Chaser, Lost Mary и другие бренды\n\n` +
-      `📩 Для обсуждения условий напишите ${supportLink}`,
+      `📦 <b>ОПТ</b>\n\n` +
+      `Для оптовых заказов и обсуждения условий сотрудничества\n` +
+      `пожалуйста, свяжитесь с нашим менеджером:\n\n` +
+      `@Manager_NRW_1`,
       {
         parse_mode: 'HTML',
-        reply_markup: SUPPORT_USERNAME ? {
-          inline_keyboard: [[{ text: '✉️ Написать по опту', url: `https://t.me/${SUPPORT_USERNAME.replace(/^@/, '')}` }]],
-        } : USER_KB,
+        reply_markup: {
+          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/Manager_NRW_1' }]],
+        },
       }
     );
   }
@@ -354,17 +345,16 @@ bot.on('message', async (msg) => {
   }
 
   if (msgText === '🆘 Поддержка') {
-    const supportLink = SUPPORT_USERNAME
-      ? `Напишите нам: @${SUPPORT_USERNAME.replace(/^@/, '')}`
-      : `Напишите администратору — он ответит в ближайшее время.`;
     return bot.sendMessage(chatId,
-      `🆘 <b>Поддержка Wakashop</b>\n\n${supportLink}\n\n` +
-      `<i>Время работы: ежедневно с 10:00 до 22:00</i>`,
+      `🛟 <b>Поддержка</b>\n\n` +
+      `Если у вас есть вопросы или пожелания,\n` +
+      `свяжитесь с нашим менеджером — мы всегда готовы помочь:\n\n` +
+      `@Manager_NRW_1`,
       {
         parse_mode: 'HTML',
-        reply_markup: SUPPORT_USERNAME ? {
-          inline_keyboard: [[{ text: '✉️ Написать в поддержку', url: `https://t.me/${SUPPORT_USERNAME.replace(/^@/, '')}` }]],
-        } : USER_KB,
+        reply_markup: {
+          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/Manager_NRW_1' }]],
+        },
       }
     );
   }
