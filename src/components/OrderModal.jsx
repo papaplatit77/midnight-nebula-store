@@ -160,6 +160,7 @@ export default function OrderModal({ onClose }) {
         items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
         total: grandTotal.toFixed(2),
         courierId: courierForCity ? courierForCity.chatId : null,
+        courierName: courierForCity ? courierForCity.name : null,
       };
       const res = await fetch(ORDER_API, {
         method: 'POST',

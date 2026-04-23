@@ -50,6 +50,7 @@ export default async function handler(req, res) {
 
 
   const { tgUsername, tgUserId, deliveryType, city, payment, items, total, courierId,
+          courierName, mailOption, shippingCost,
           firstName, lastName, phone, email, street, plz } = req.body;
 
   // ── Валидация ─────────────────────────────────────────────────
@@ -85,7 +86,8 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Слишком много заказов. Подождите 10 минут.' });
 
   // ── Формируем сообщение ───────────────────────────────────────
-  const deliveryLabel = deliveryType === 'meeting' ? '🤝 Личная встреча' : '📬 Почта (DHL/Hermes)';
+  const mailTypeLabel = mailOption === 'track' ? '📦 С трек-номером (6,20 €)' : mailOption === 'notrack' ? '✉️ Без трек-номера (4,19 €)' : '';
+  const deliveryLabel = deliveryType === 'meeting' ? '🤝 Личная встреча' : `📬 Почта (DHL/Hermes)`;
   const paymentLabel  = payment === 'card' ? '💳 Банковская карта' : '💵 Наличные';
   const itemsList     = items
     .map(i => `• ${esc(i.name)} × ${Number(i.qty)} — ${(Number(i.price) * Number(i.qty)).toFixed(2)} €`)
@@ -95,8 +97,10 @@ export default async function handler(req, res) {
     ? `👤 <b>${esc(firstName)} ${esc(lastName)}</b>\n` +
       `📞 ${esc(phone)}\n` +
       `📧 ${esc(email)}\n` +
-      `🏠 ${esc(street)}, ${esc(plz)} ${esc(city)}\n`
-    : `📍 ${esc(city)}\n`;
+      `🏠 ${esc(street)}, ${esc(plz)} ${esc(city)}\n` +
+      (mailTypeLabel ? `📮 ${mailTypeLabel}\n` : '')
+    : `📍 ${esc(city)}\n` +
+      (courierName ? `🚗 Курьер: <b>${esc(courierName)}</b>\n` : '');
 
   const text =
     `🛒 <b>НОВЫЙ ЗАКАЗ — WAKASHOP</b>\n` +
@@ -136,8 +140,10 @@ export default async function handler(req, res) {
   if (tgUserId) {
     tgSend(TOKEN, tgUserId,
       `✅ <b>Заказ принят!</b>\n\n` +
-      `Спасибо за заказ в Wakashop. Скоро свяжемся с вами.\n\n` +
-      `📍 ${esc(city)} · ${deliveryLabel}\n💰 ${paymentLabel}\n💎 <b>${esc(total)} €</b>`
+      `📍 ${esc(city)} · ${deliveryLabel}\n` +
+      `💰 ${paymentLabel}\n` +
+      `💎 <b>${esc(total)} €</b>\n\n` +
+      `⏳ Ожидайте — совсем скоро с вами свяжется курьер 🚚`
     ).catch(() => {});
   }
 
