@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { products as initialProducts } from '../../data/products';
 
 const AdminContext = createContext(null);
@@ -70,25 +70,33 @@ export function AdminProvider({ children }) {
     };
   }
 
-  // Загружаем заказы и пользователей из API бота при входе
-  useEffect(() => {
-    if (!authed) return;
+  const [lastRefresh, setLastRefresh] = useState(null);
+
+  const refreshOrders = useCallback(() => {
     const pw = adminPasswordRef.current;
     if (!pw) return;
-
     fetch('/api/orders', { headers: { 'x-admin-password': pw } })
       .then(r => r.ok ? r.json() : [])
       .then(data => {
-        if (Array.isArray(data)) setOrders(data.map(normalizeOrder));
+        if (Array.isArray(data)) {
+          setOrders(data.map(normalizeOrder));
+          setLastRefresh(new Date());
+        }
       })
       .catch(() => {});
-
     fetch('/api/users', { headers: { 'x-admin-password': pw } })
       .then(r => r.ok ? r.json() : [])
       .then(data => { if (Array.isArray(data)) setUsers(data); })
       .catch(() => {});
+  }, []);
 
-  }, [authed]);
+  // Загружаем при входе и обновляем каждые 30 секунд
+  useEffect(() => {
+    if (!authed) return;
+    refreshOrders();
+    const interval = setInterval(refreshOrders, 30_000);
+    return () => clearInterval(interval);
+  }, [authed, refreshOrders]);
 
   // Сохраняем продукты на сервер при изменении
   const saveProductsToServer = (updatedProducts) => {
@@ -273,7 +281,7 @@ export function AdminProvider({ children }) {
   return (
     <AdminContext.Provider value={{
       authed, login, logout,
-      orders, addOrder, updateOrderStatus,
+      orders, addOrder, updateOrderStatus, refreshOrders, lastRefresh,
       products, addProduct, updateProduct, deleteProduct,
       couriers, addCourier, updateCourier, deleteCourier, getCourierForCity,
       customers, users, revenue,

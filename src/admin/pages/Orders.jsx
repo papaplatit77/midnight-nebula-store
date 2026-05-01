@@ -15,9 +15,16 @@ const STATUS_COLOR = { new: '#d966ff', processing: '#60a5fa', shipped: '#a78bfa'
 const STATUS_LABEL = { new: 'Новый', processing: 'В обработке', shipped: 'Отправлен', delivered: 'Доставлен' };
 
 export default function Orders() {
-  const { orders, updateOrderStatus, deleteOrder } = useAdmin();
+  const { orders, updateOrderStatus, deleteOrder, refreshOrders, lastRefresh } = useAdmin();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    refreshOrders();
+    setTimeout(() => setRefreshing(false), 800);
+  };
 
   const filtered = orders.filter(o => {
     if (filter !== 'all' && o.status !== filter) return false;
@@ -29,8 +36,28 @@ export default function Orders() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1>Заказы</h1>
-        <span className={styles.count}>{orders.length}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h1>Заказы</h1>
+          <span className={styles.count}>{orders.length}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {lastRefresh && (
+            <span style={{ fontSize: 12, opacity: 0.4 }}>
+              {lastRefresh.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          )}
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            style={{
+              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 8, color: '#fff', padding: '6px 14px', cursor: 'pointer',
+              fontSize: 13, opacity: refreshing ? 0.5 : 1,
+            }}
+          >
+            {refreshing ? '...' : '↻ Обновить'}
+          </button>
+        </div>
       </div>
 
       <div className={styles.controls}>
