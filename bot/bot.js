@@ -460,9 +460,32 @@ app.post('/api/products', (req, res) => {
 
 // Сохранение заказа (вызывается из Vercel function)
 app.post('/api/save-order', (req, res) => {
-  const { tgUserId, ...order } = req.body;
-  if (!tgUserId) return res.status(400).json({ error: 'No userId' });
-  saveOrder(tgUserId, order);
+  const { tgUserId, courierId, courierName, ...order } = req.body;
+
+  if (tgUserId) saveOrder(tgUserId, order);
+
+  // Уведомляем курьера через бота
+  if (courierId) {
+    const deliveryLabel = order.deliveryType === 'meeting' ? '🤝 Личная встреча' : '📬 Почта';
+    const paymentLabel  = order.payment === 'card' ? '💳 Карта' : '💵 Наличные';
+    const itemsList = (order.items || [])
+      .map(i => `• ${i.name} × ${i.qty} — ${(Number(i.price) * Number(i.qty)).toFixed(2)} €`)
+      .join('\n');
+    const courierText =
+      `📦 <b>НОВЫЙ ЗАКАЗ — ${order.city || '—'}</b>\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `👤 ${order.tgUsername || 'неизвестен'}${tgUserId ? ` (id: ${tgUserId})` : ''}\n` +
+      `🚚 ${deliveryLabel}\n` +
+      `💰 ${paymentLabel}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `${itemsList}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `💎 <b>Итого: ${order.total} €</b>`;
+
+    bot.sendMessage(courierId, courierText, { parse_mode: 'HTML' })
+      .catch(err => console.error(`Не удалось отправить курьеру ${courierId}:`, err.message));
+  }
+
   res.json({ ok: true });
 });
 
