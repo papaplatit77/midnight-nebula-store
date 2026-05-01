@@ -12,7 +12,7 @@ const ALL_CITIES = [
   'Leipzig','Bremen','Hannover','Nürnberg','Dresden',
 ];
 
-const EMPTY = { name: '', chatId: '', cities: [], productIds: [] };
+const EMPTY = { name: '', chatId: '', username: '', cities: [], productIds: [] };
 
 export default function Couriers() {
   const { couriers, addCourier, updateCourier, deleteCourier, products } = useAdmin();
@@ -49,6 +49,7 @@ export default function Couriers() {
     const data = {
       name: form.name.trim(),
       chatId: form.chatId.trim(),
+      username: form.username.trim().replace(/^@/, ''),
       cities: form.cities,
       productIds: form.productIds || [],
     };
@@ -67,6 +68,7 @@ export default function Couriers() {
     setForm({
       name: c.name,
       chatId: c.chatId,
+      username: c.username || '',
       cities: c.cities || [],
       productIds: c.productIds || [],
     });
@@ -123,6 +125,15 @@ export default function Couriers() {
                 onChange={e => setForm(f => ({ ...f, chatId: e.target.value.replace(/\D/g, '') }))}
               />
               <span className={styles.hint}>Узнать через @userinfobot в Telegram</span>
+            </div>
+            <div className={styles.field}>
+              <label>Username (необязательно)</label>
+              <input
+                placeholder="@username"
+                value={form.username}
+                onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
+              />
+              <span className={styles.hint}>Если есть — пользователи смогут написать напрямую</span>
             </div>
           </div>
 
@@ -224,7 +235,10 @@ export default function Couriers() {
               <div className={styles.cardTop}>
                 <div className={styles.cardInfo}>
                   <div className={styles.cardName}>🚗 {c.name}</div>
-                  <div className={styles.cardId}>ID: <code>{c.chatId}</code></div>
+                  <div className={styles.cardId}>
+                    ID: <code>{c.chatId}</code>
+                    {c.username && <span style={{ marginLeft: '8px', opacity: 0.6 }}>@{c.username}</span>}
+                  </div>
                 </div>
                 <div className={styles.cardActions}>
                   <button className={styles.editBtn} onClick={() => handleEdit(c)}>Изменить</button>

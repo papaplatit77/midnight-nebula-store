@@ -88,6 +88,13 @@ const orderPage = {}; // { [chatId]: pageIndex }
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 const isAdmin = id => ADMIN_IDS.has(id);
 
+bot.on('polling_error', (err) => {
+  console.error('Polling error:', err.code || err.message);
+});
+bot.on('error', (err) => {
+  console.error('Bot error:', err.message);
+});
+
 // ── Клавиатуры ────────────────────────────────────────────────
 const ADMIN_KB = {
   keyboard: [
@@ -121,9 +128,8 @@ function getCouriers() {
 function buildCitiesKeyboard() {
   const couriers = getCouriers();
   if (!couriers.length) return null;
-  // Уникальные города
-  const cities = [...new Set(couriers.map(c => c.city))];
-  // По 2 города в ряд
+  const cities = [...new Set(couriers.flatMap(c => c.cities || []))];
+  if (!cities.length) return null;
   const rows = [];
   for (let i = 0; i < cities.length; i += 2) {
     const row = [{ text: cities[i], callback_data: `city_${cities[i]}` }];
@@ -367,7 +373,7 @@ bot.on('callback_query', async (query) => {
   // Выбор города — показать курьеров
   if (query.data.startsWith('city_')) {
     const city = query.data.slice(5);
-    const couriers = getCouriers().filter(c => c.city === city);
+    const couriers = getCouriers().filter(c => (c.cities || []).includes(city));
     if (!couriers.length) {
       return bot.sendMessage(query.message.chat.id,
         `😔 В городе <b>${city}</b> пока нет курьеров.`,
@@ -375,10 +381,11 @@ bot.on('callback_query', async (query) => {
       );
     }
     const lines = couriers.map((c, i) => {
-      const contact = c.username ? `@${c.username.replace(/^@/, '')}` : c.phone || '—';
       const name = c.name ? `<b>${c.name}</b>` : `<b>Курьер ${i + 1}</b>`;
-      const note = c.note ? `\n<i>${c.note}</i>` : '';
-      return `${name} — ${contact}${note}`;
+      const contact = c.username
+        ? `@${c.username.replace(/^@/, '')}`
+        : c.chatId ? `<code>${c.chatId}</code>` : '—';
+      return `${name} — ${contact}`;
     });
     const inlineKb = couriers
       .filter(c => c.username)
