@@ -532,7 +532,10 @@ export default function OrderModal({ onClose }) {
             <div className={styles.step2Footer}>
               {count > 0 ? (
                 <>
-                  <p className={styles.step2FooterText}>🛒 {count} шт. · <strong>{total.toFixed(2)} €</strong></p>
+                  <p className={styles.step2FooterText}>
+                  🛒 {count} шт. · <strong>{grandTotal.toFixed(2)} €</strong>
+                  {shippingCost > 0 && <small style={{ opacity: 0.6, marginLeft: 4 }}>вкл. доставку</small>}
+                </p>
                   <button className={`${styles.orderBtn}`} onClick={() => setStep(3)}>
                     ОФОРМИТЬ →
                   </button>
