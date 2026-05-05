@@ -4,6 +4,7 @@ export const categories = [
   { id: 'pods', name: 'Поды' },
   { id: 'liquids', name: 'Жидкости' },
   { id: 'accessories', name: 'Расходники' },
+  { id: 'snus', name: 'Снюс' },
 ];
 
 export const products = [

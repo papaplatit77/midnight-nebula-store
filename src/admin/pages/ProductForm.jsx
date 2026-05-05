@@ -8,9 +8,10 @@ const CATEGORIES = [
   { value: 'pods',       label: 'Поды' },
   { value: 'liquids',    label: 'Жидкости' },
   { value: 'accessories',label: 'Расходники' },
+  { value: 'snus',       label: 'Снюс' },
 ];
 
-const CAT_ICON = { disposable:'💨', pods:'🔋', liquids:'💧', accessories:'🔧' };
+const CAT_ICON = { disposable:'💨', pods:'🔋', liquids:'💧', accessories:'🔧', snus:'🍃' };
 
 const EMPTY = {
   name: '', category: 'disposable', price: '', oldPrice: '',

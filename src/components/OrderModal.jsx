@@ -18,7 +18,7 @@ const CITIES = [
   'Leipzig','Bremen','Hannover','Nürnberg','Dresden',
 ];
 
-const CAT_EMOJI = { disposable:'💨', pods:'🔌', liquids:'💧', accessories:'⚙️' };
+const CAT_EMOJI = { disposable:'💨', pods:'🔌', liquids:'💧', accessories:'⚙️', snus:'🍃' };
 
 export default function OrderModal({ onClose }) {
   const { add, items, total, count, clear } = useCart();
