@@ -87,7 +87,7 @@ export default function OrderModal({ onClose }) {
     && street.trim() && plz.trim() && deliveryCity.trim();
   const canNext = deliveryType && payment
     && (deliveryType === 'meeting'
-      ? city
+      ? (city && (!isReady ? tgHandle.trim() : true))
       : mailOption && mailFieldsFilled);
 
   const handleDeliveryType = (type) => {
@@ -262,6 +262,21 @@ export default function OrderModal({ onClose }) {
               </div>
             </div>
 
+            {/* TG username — только в браузере, для любого типа доставки */}
+            {!isReady && (
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Telegram username</label>
+                <input
+                  className={`${styles.textInput} ${fieldErrors.tgHandle ? styles.inputError : ''}`}
+                  type="text"
+                  placeholder="@username"
+                  value={tgHandle}
+                  onChange={e => { setTgHandle(e.target.value.replace(/^@+/, '')); setFieldErrors(p => ({...p, tgHandle: ''})); }}
+                />
+                {fieldErrors.tgHandle && <span className={styles.fieldErr}>{fieldErrors.tgHandle}</span>}
+              </div>
+            )}
+
             {/* Варианты почты — только если выбрана почта */}
             {deliveryType === 'mail' && (
               <div className={styles.fieldGroup}>
@@ -317,17 +332,6 @@ export default function OrderModal({ onClose }) {
                     />
                     {fieldErrors.lastName && <span className={styles.fieldErr}>{fieldErrors.lastName}</span>}
                   </div>
-                </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Telegram username</label>
-                  <input
-                    className={`${styles.textInput} ${fieldErrors.tgHandle ? styles.inputError : ''}`}
-                    type="text"
-                    placeholder="@username"
-                    value={tgHandle}
-                    onChange={e => { setTgHandle(e.target.value.replace(/^@+/, '')); setFieldErrors(p => ({...p, tgHandle: ''})); }}
-                  />
-                  {fieldErrors.tgHandle && <span className={styles.fieldErr}>{fieldErrors.tgHandle}</span>}
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Улица и номер дома</label>
@@ -435,11 +439,12 @@ export default function OrderModal({ onClose }) {
               className={`${styles.nextBtn} ${canNext ? styles.nextBtnActive : ''}`}
               disabled={!canNext}
               onClick={() => {
-                if (deliveryType === 'mail') {
-                  const errs = validateMailFields();
-                  if (Object.keys(errs).length) { setFieldErrors(errs); return; }
-                  setFieldErrors({});
+                const errs = deliveryType === 'mail' ? validateMailFields() : {};
+                if (deliveryType === 'meeting' && !isReady && !tgHandle.trim()) {
+                  errs.tgHandle = 'Укажите Telegram username';
                 }
+                if (Object.keys(errs).length) { setFieldErrors(errs); return; }
+                setFieldErrors({});
                 setStep(2);
               }}
             >
