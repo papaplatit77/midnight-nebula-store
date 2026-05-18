@@ -42,9 +42,7 @@ export default function OrderModal({ onClose }) {
   const [activeCat, setActiveCat] = useState('all');
   const [addedMap, setAddedMap] = useState({});
   const [visible, setVisible] = useState(false);
-  const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const [sendError, setSendError] = useState('');
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -156,56 +154,22 @@ export default function OrderModal({ onClose }) {
   const handleSendOrder = async () => {
     if (items.length === 0) return;
 
-    // Браузерный режим — открываем личку с менеджером
-    if (!isReady) {
-      const text = buildOrderText();
-      try { await navigator.clipboard.writeText(text); } catch {}
-      window.open('https://t.me/Manager_NRW_1', '_blank', 'noopener');
-      setSent(true);
-      clear();
-      return;
+    const text = buildOrderText();
+    try { await navigator.clipboard.writeText(text); } catch {}
+
+    const courierUsername = deliveryType === 'meeting' && courierForCity?.username
+      ? courierForCity.username
+      : 'Manager_NRW_1';
+    const tgLink = `https://t.me/${courierUsername}`;
+
+    if (isReady) {
+      window.Telegram.WebApp.openTelegramLink(tgLink);
+    } else {
+      window.open(tgLink, '_blank', 'noopener');
     }
 
-    setSending(true);
-    setSendError('');
-    try {
-      const tg = tgHandle.trim() || (username || 'неизвестен');
-      const payload = {
-        tgUsername: tg.startsWith('@') ? tg : `@${tg}`,
-        tgUserId: userId || null,
-        deliveryType,
-        mailOption: mailOption || null,
-        shippingCost: shippingCost > 0 ? shippingCost.toFixed(2) : null,
-        city: deliveryType === 'mail' ? deliveryCity.trim() : city,
-        ...(deliveryType === 'mail' && {
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          street: street.trim(),
-          plz: plz.trim(),
-        }),
-        payment,
-        items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
-        total: grandTotal.toFixed(2),
-        courierId: courierForCity ? courierForCity.chatId : null,
-        courierName: courierForCity ? courierForCity.name : null,
-      };
-      const res = await fetch(ORDER_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.status === 429) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Слишком много заказов. Подождите немного.');
-      }
-      if (!res.ok) throw new Error('Ошибка сервера');
-      setSent(true);
-      clear();
-    } catch (e) {
-      setSendError(e.message || 'Не удалось отправить. Попробуйте ещё раз.');
-    } finally {
-      setSending(false);
-    }
+    setSent(true);
+    clear();
   };
 
   return (
@@ -576,9 +540,7 @@ export default function OrderModal({ onClose }) {
                 <div className={styles.successIcon}>✅</div>
                 <h2 className={styles.successTitle}>Заказ отправлен!</h2>
                 <p className={styles.successSub}>
-                  {isReady
-                    ? 'Мы свяжемся с вами в Telegram в ближайшее время.'
-                    : 'Текст заказа скопирован. Вставьте его в чат с менеджером.'}
+                  Текст заказа скопирован. Вставьте его в открывшийся чат.
                 </p>
                 <button className={`${styles.nextBtn} ${styles.nextBtnActive}`} onClick={handleClose}>
                   Закрыть
@@ -661,16 +623,14 @@ export default function OrderModal({ onClose }) {
                   </div>
                 </div>
 
-                {sendError && <p className={styles.sendError}>{sendError}</p>}
-
                 <div className={styles.confirmBtns}>
                   <button className={styles.backBtn} onClick={() => setStep(2)}>← Изменить</button>
                   <button
                     className={`${styles.nextBtn} ${styles.nextBtnActive} ${styles.confirmSendBtn}`}
                     onClick={handleSendOrder}
-                    disabled={sending || items.length === 0}
+                    disabled={items.length === 0}
                   >
-                    {sending ? 'Отправляем...' : '📨 Отправить заказ'}
+                    📨 Отправить заказ
                   </button>
                 </div>
               </>
