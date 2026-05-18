@@ -262,21 +262,6 @@ export default function OrderModal({ onClose }) {
               </div>
             </div>
 
-            {/* TG username — только в браузере, для любого типа доставки */}
-            {!isReady && (
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Telegram username</label>
-                <input
-                  className={`${styles.textInput} ${fieldErrors.tgHandle ? styles.inputError : ''}`}
-                  type="text"
-                  placeholder="@username"
-                  value={tgHandle}
-                  onChange={e => { setTgHandle(e.target.value.replace(/^@+/, '')); setFieldErrors(p => ({...p, tgHandle: ''})); }}
-                />
-                {fieldErrors.tgHandle && <span className={styles.fieldErr}>{fieldErrors.tgHandle}</span>}
-              </div>
-            )}
-
             {/* Варианты почты — только если выбрана почта */}
             {deliveryType === 'mail' && (
               <div className={styles.fieldGroup}>
@@ -333,6 +318,19 @@ export default function OrderModal({ onClose }) {
                     {fieldErrors.lastName && <span className={styles.fieldErr}>{fieldErrors.lastName}</span>}
                   </div>
                 </div>
+                {!isReady && (
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Telegram username</label>
+                    <input
+                      className={`${styles.textInput} ${fieldErrors.tgHandle ? styles.inputError : ''}`}
+                      type="text"
+                      placeholder="@username"
+                      value={tgHandle}
+                      onChange={e => { setTgHandle(e.target.value.replace(/^@+/, '')); setFieldErrors(p => ({...p, tgHandle: ''})); }}
+                    />
+                    {fieldErrors.tgHandle && <span className={styles.fieldErr}>{fieldErrors.tgHandle}</span>}
+                  </div>
+                )}
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Улица и номер дома</label>
                   <input
@@ -395,6 +393,21 @@ export default function OrderModal({ onClose }) {
                     🚗 Ваш курьер: <strong>{courierForCity.name}</strong>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* TG username для встречи — только в браузере */}
+            {deliveryType === 'meeting' && !isReady && (
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Telegram username</label>
+                <input
+                  className={`${styles.textInput} ${fieldErrors.tgHandle ? styles.inputError : ''}`}
+                  type="text"
+                  placeholder="@username"
+                  value={tgHandle}
+                  onChange={e => { setTgHandle(e.target.value.replace(/^@+/, '')); setFieldErrors(p => ({...p, tgHandle: ''})); }}
+                />
+                {fieldErrors.tgHandle && <span className={styles.fieldErr}>{fieldErrors.tgHandle}</span>}
               </div>
             )}
 
