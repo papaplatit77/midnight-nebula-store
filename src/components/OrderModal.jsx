@@ -160,7 +160,7 @@ export default function OrderModal({ onClose }) {
 
     const tgLink = `https://t.me/Manager_NRW_1?text=${encodeURIComponent(text)}`;
 
-    if (isReady) {
+    if (window.Telegram?.WebApp?.openTelegramLink) {
       window.Telegram.WebApp.openTelegramLink(tgLink);
     } else {
       window.open(tgLink, '_blank', 'noopener');
