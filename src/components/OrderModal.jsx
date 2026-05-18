@@ -155,12 +155,11 @@ export default function OrderModal({ onClose }) {
     if (items.length === 0) return;
 
     const text = buildOrderText();
-    try { await navigator.clipboard.writeText(text); } catch {}
 
     const courierUsername = deliveryType === 'meeting' && courierForCity?.username
       ? courierForCity.username
       : 'Manager_NRW_1';
-    const tgLink = `https://t.me/${courierUsername}`;
+    const tgLink = `https://t.me/${courierUsername}?text=${encodeURIComponent(text)}`;
 
     if (isReady) {
       window.Telegram.WebApp.openTelegramLink(tgLink);
@@ -540,7 +539,7 @@ export default function OrderModal({ onClose }) {
                 <div className={styles.successIcon}>✅</div>
                 <h2 className={styles.successTitle}>Заказ отправлен!</h2>
                 <p className={styles.successSub}>
-                  Текст заказа скопирован. Вставьте его в открывшийся чат.
+                  Чат открыт, заказ уже вставлен — просто нажмите отправить.
                 </p>
                 <button className={`${styles.nextBtn} ${styles.nextBtnActive}`} onClick={handleClose}>
                   Закрыть
