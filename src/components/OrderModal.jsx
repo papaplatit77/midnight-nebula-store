@@ -23,7 +23,7 @@ const CAT_EMOJI = { disposable:'💨', pods:'🔌', liquids:'💧', accessories:
 export default function OrderModal({ onClose }) {
   const { add, items, total, count, clear } = useCart();
   const { products } = useAdmin();
-  const { username, userId } = useTelegram();
+  const { username, userId, isReady } = useTelegram();
   const [couriersList, setCouriersList] = useState([]);
 
   const [step, setStep] = useState(1);
@@ -33,8 +33,7 @@ export default function OrderModal({ onClose }) {
   const [payment, setPayment] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [tgHandle, setTgHandle] = useState(username ? username.replace('@', '') : '');
   const [street, setStreet] = useState('');
   const [plz, setPlz] = useState('');
   const [deliveryCity, setDeliveryCity] = useState('');
@@ -69,8 +68,6 @@ export default function OrderModal({ onClose }) {
   const grandTotal = total + shippingCost;
 
   const latinOnly = /^[a-zA-Z\s\-]+$/;
-  const germanPhone = /^(\+49|0)[1-9][0-9]{9,13}$/;
-  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const validateMailFields = () => {
     const errs = {};
@@ -78,10 +75,7 @@ export default function OrderModal({ onClose }) {
     else if (!latinOnly.test(firstName.trim())) errs.firstName = 'Только латиница';
     if (!lastName.trim()) errs.lastName = 'Обязательное поле';
     else if (!latinOnly.test(lastName.trim())) errs.lastName = 'Только латиница';
-    if (!phone.trim()) errs.phone = 'Обязательное поле';
-    else if (!germanPhone.test(phone.replace(/\s/g, ''))) errs.phone = '+49 или 0... (10-15 цифр)';
-    if (!email.trim()) errs.email = 'Обязательное поле';
-    else if (!validEmail.test(email.trim())) errs.email = 'Неверный email';
+    if (!tgHandle.trim()) errs.tgHandle = 'Укажите Telegram username';
     if (!street.trim()) errs.street = 'Укажите улицу и дом';
     if (!plz.trim()) errs.plz = 'Укажите PLZ';
     else if (!/^\d{5}$/.test(plz.trim())) errs.plz = '5 цифр, например 50667';
@@ -89,8 +83,8 @@ export default function OrderModal({ onClose }) {
     return errs;
   };
 
-  const mailFieldsFilled = firstName.trim() && lastName.trim() && phone.trim()
-    && email.trim() && street.trim() && plz.trim() && deliveryCity.trim();
+  const mailFieldsFilled = firstName.trim() && lastName.trim() && tgHandle.trim()
+    && street.trim() && plz.trim() && deliveryCity.trim();
   const canNext = deliveryType && payment
     && (deliveryType === 'meeting'
       ? city
@@ -136,13 +130,48 @@ export default function OrderModal({ onClose }) {
     setTimeout(onClose, 320);
   };
 
+  const buildOrderText = () => {
+    const deliveryLabel = deliveryType === 'meeting' ? 'Личная встреча' : 'Почта (DHL)';
+    const paymentLabel = payment === 'card' ? 'Карта' : 'Наличные';
+    const orderCity = deliveryType === 'mail' ? deliveryCity.trim() : city;
+    const tg = tgHandle.trim() || (username ? username.replace('@', '') : '');
+    const itemsText = items.map(i => `• ${i.name} ×${i.qty} — ${(i.price * i.qty).toFixed(2)} €`).join('\n');
+    const mailBlock = deliveryType === 'mail'
+      ? `\nПолучатель: ${firstName.trim()} ${lastName.trim()}\nАдрес: ${street.trim()}, ${plz.trim()} ${deliveryCity.trim()}`
+      : '';
+    return (
+      `📦 ЗАКАЗ WAKASHOP\n` +
+      `TG: @${tg}\n` +
+      `Доставка: ${deliveryLabel}\n` +
+      `Город: ${orderCity}\n` +
+      `Оплата: ${paymentLabel}` +
+      mailBlock + '\n' +
+      `───────────────\n` +
+      itemsText + '\n' +
+      `───────────────\n` +
+      `Итого: ${grandTotal.toFixed(2)} €`
+    );
+  };
+
   const handleSendOrder = async () => {
     if (items.length === 0) return;
+
+    // Браузерный режим — открываем личку с менеджером
+    if (!isReady) {
+      const text = buildOrderText();
+      try { await navigator.clipboard.writeText(text); } catch {}
+      window.open('https://t.me/Manager_NRW_1', '_blank', 'noopener');
+      setSent(true);
+      clear();
+      return;
+    }
+
     setSending(true);
     setSendError('');
     try {
+      const tg = tgHandle.trim() || (username || 'неизвестен');
       const payload = {
-        tgUsername: username || 'неизвестен',
+        tgUsername: tg.startsWith('@') ? tg : `@${tg}`,
         tgUserId: userId || null,
         deliveryType,
         mailOption: mailOption || null,
@@ -151,8 +180,6 @@ export default function OrderModal({ onClose }) {
         ...(deliveryType === 'mail' && {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          phone: phone.trim(),
-          email: email.trim(),
           street: street.trim(),
           plz: plz.trim(),
         }),
@@ -292,26 +319,15 @@ export default function OrderModal({ onClose }) {
                   </div>
                 </div>
                 <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Телефон (+49...)</label>
+                  <label className={styles.fieldLabel}>Telegram username</label>
                   <input
-                    className={`${styles.textInput} ${fieldErrors.phone ? styles.inputError : ''}`}
-                    type="tel"
-                    placeholder="+49 151 00000000"
-                    value={phone}
-                    onChange={e => { setPhone(e.target.value); setFieldErrors(p => ({...p, phone: ''})); }}
+                    className={`${styles.textInput} ${fieldErrors.tgHandle ? styles.inputError : ''}`}
+                    type="text"
+                    placeholder="@username"
+                    value={tgHandle}
+                    onChange={e => { setTgHandle(e.target.value.replace(/^@+/, '')); setFieldErrors(p => ({...p, tgHandle: ''})); }}
                   />
-                  {fieldErrors.phone && <span className={styles.fieldErr}>{fieldErrors.phone}</span>}
-                </div>
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Email</label>
-                  <input
-                    className={`${styles.textInput} ${fieldErrors.email ? styles.inputError : ''}`}
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={e => { setEmail(e.target.value); setFieldErrors(p => ({...p, email: ''})); }}
-                  />
-                  {fieldErrors.email && <span className={styles.fieldErr}>{fieldErrors.email}</span>}
+                  {fieldErrors.tgHandle && <span className={styles.fieldErr}>{fieldErrors.tgHandle}</span>}
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Улица и номер дома</label>
@@ -554,7 +570,11 @@ export default function OrderModal({ onClose }) {
               <div className={styles.successBlock}>
                 <div className={styles.successIcon}>✅</div>
                 <h2 className={styles.successTitle}>Заказ отправлен!</h2>
-                <p className={styles.successSub}>Мы свяжемся с вами в Telegram в ближайшее время.</p>
+                <p className={styles.successSub}>
+                  {isReady
+                    ? 'Мы свяжемся с вами в Telegram в ближайшее время.'
+                    : 'Текст заказа скопирован. Вставьте его в чат с менеджером.'}
+                </p>
                 <button className={`${styles.nextBtn} ${styles.nextBtnActive}`} onClick={handleClose}>
                   Закрыть
                 </button>
@@ -587,8 +607,8 @@ export default function OrderModal({ onClose }) {
                         <span className={styles.confirmVal}>{firstName} {lastName}</span>
                       </div>
                       <div className={styles.confirmRow}>
-                        <span className={styles.confirmKey}>Телефон</span>
-                        <span className={styles.confirmVal}>{phone}</span>
+                        <span className={styles.confirmKey}>Telegram</span>
+                        <span className={styles.confirmVal}>@{tgHandle}</span>
                       </div>
                       <div className={styles.confirmRow}>
                         <span className={styles.confirmKey}>Город</span>

@@ -96,7 +96,7 @@ export default function Home() {
                 </button>
                 <button
                   className={styles.subscribeBtn}
-                  onClick={() => openTg(MANAGER_TG)}
+                  onClick={() => openTg('wakashopde_bot')}
                 >
                   ПОДПИСАТЬСЯ
                 </button>

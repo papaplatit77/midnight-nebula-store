@@ -51,7 +51,7 @@ export default async function handler(req, res) {
 
   const { tgUsername, tgUserId, deliveryType, city, payment, items, total, courierId,
           courierName, mailOption, shippingCost,
-          firstName, lastName, phone, email, street, plz } = req.body;
+          firstName, lastName, street, plz } = req.body;
 
   // ── Валидация ─────────────────────────────────────────────────
   if (!items || !Array.isArray(items) || items.length === 0)
@@ -95,8 +95,6 @@ export default async function handler(req, res) {
 
   const mailDetails = deliveryType === 'mail'
     ? `👤 <b>${esc(firstName)} ${esc(lastName)}</b>\n` +
-      `📞 ${esc(phone)}\n` +
-      `📧 ${esc(email)}\n` +
       `🏠 ${esc(street)}, ${esc(plz)} ${esc(city)}\n` +
       (mailTypeLabel ? `📮 ${mailTypeLabel}\n` : '')
     : `📍 ${esc(city)}\n` +
@@ -149,7 +147,7 @@ export default async function handler(req, res) {
       status: 'new',
       courierId: courierId || null,
       courierName: courierName || null,
-      ...(deliveryType === 'mail' && { firstName, lastName, phone, email, address: `${street}, ${plz} ${city}` }),
+      ...(deliveryType === 'mail' && { firstName, lastName, address: `${street}, ${plz} ${city}` }),
     }),
   }).catch(() => {});
 
