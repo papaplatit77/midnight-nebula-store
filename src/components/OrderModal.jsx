@@ -539,7 +539,7 @@ export default function OrderModal({ onClose }) {
                 <div className={styles.successIcon}>✅</div>
                 <h2 className={styles.successTitle}>Заказ отправлен!</h2>
                 <p className={styles.successSub}>
-                  Чат открыт, заказ уже вставлен — просто нажмите отправить.
+                  Нажмите отправить в открывшемся чате.
                 </p>
                 <button className={`${styles.nextBtn} ${styles.nextBtnActive}`} onClick={handleClose}>
                   Закрыть
