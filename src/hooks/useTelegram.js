@@ -8,7 +8,7 @@ export function useTelegram() {
     user,
     username: user?.username ? `@${user.username}` : user?.first_name ?? null,
     userId: user?.id ?? null,
-    isReady: !!tg,
+    isReady: !!(tg && tg.initData),
     expand: () => tg?.expand(),
     close: () => tg?.close(),
   };
