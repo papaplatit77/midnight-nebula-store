@@ -66,6 +66,7 @@ export default function OrderModal({ onClose }) {
   const grandTotal = total + shippingCost;
 
   const latinOnly = /^[a-zA-Z\s\-]+$/;
+  const validTgHandle = /^[a-zA-Z0-9_]{5,32}$/;
 
   const validateMailFields = () => {
     const errs = {};
@@ -74,6 +75,7 @@ export default function OrderModal({ onClose }) {
     if (!lastName.trim()) errs.lastName = 'Обязательное поле';
     else if (!latinOnly.test(lastName.trim())) errs.lastName = 'Только латиница';
     if (!tgHandle.trim()) errs.tgHandle = 'Укажите Telegram username';
+    else if (!validTgHandle.test(tgHandle.trim())) errs.tgHandle = 'Только латиница, цифры и _ · минимум 5 символов';
     if (!street.trim()) errs.street = 'Укажите улицу и дом';
     if (!plz.trim()) errs.plz = 'Укажите PLZ';
     else if (!/^\d{5}$/.test(plz.trim())) errs.plz = '5 цифр, например 50667';
@@ -156,10 +158,7 @@ export default function OrderModal({ onClose }) {
 
     const text = buildOrderText();
 
-    const courierUsername = deliveryType === 'meeting' && courierForCity?.username
-      ? courierForCity.username
-      : 'Manager_NRW_1';
-    const tgLink = `https://t.me/${courierUsername}?text=${encodeURIComponent(text)}`;
+    const tgLink = `https://t.me/Manager_NRW_1?text=${encodeURIComponent(text)}`;
 
     if (isReady) {
       window.Telegram.WebApp.openTelegramLink(tgLink);
@@ -403,8 +402,9 @@ export default function OrderModal({ onClose }) {
               disabled={!canNext}
               onClick={() => {
                 const errs = deliveryType === 'mail' ? validateMailFields() : {};
-                if (deliveryType === 'meeting' && !isReady && !tgHandle.trim()) {
-                  errs.tgHandle = 'Укажите Telegram username';
+                if (deliveryType === 'meeting' && !isReady) {
+                  if (!tgHandle.trim()) errs.tgHandle = 'Укажите Telegram username';
+                  else if (!validTgHandle.test(tgHandle.trim())) errs.tgHandle = 'Только латиница, цифры и _ · минимум 5 символов';
                 }
                 if (Object.keys(errs).length) { setFieldErrors(errs); return; }
                 setFieldErrors({});
