@@ -163,9 +163,9 @@ export default function OrderModal({ onClose }) {
     const encodedText = encodeURIComponent(text);
 
     if (window.Telegram?.WebApp) {
-      // tg:// deep link перехватывается нативным Telegram и открывает чат с предзаполненным текстом
+      window.Telegram.WebApp.openTelegramLink(`https://t.me/${recipient}?text=${encodedText}`);
+      setSent(true);
       clear();
-      window.location.href = `tg://resolve?domain=${recipient}&text=${encodedText}`;
     } else {
       window.open(`https://t.me/${recipient}?text=${encodedText}`, '_blank', 'noopener');
       setSent(true);
