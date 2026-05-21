@@ -460,17 +460,18 @@ app.post('/api/products', (req, res) => {
 
 // Сохранение заказа (вызывается из Vercel function)
 app.post('/api/save-order', (req, res) => {
-  const { tgUserId, courierId, courierName, ...order } = req.body;
+  const { tgUserId, courierId, courierName, courierUsername, orderText, ...order } = req.body;
 
   if (tgUserId) saveOrder(tgUserId, order);
 
+  const deliveryLabel = order.deliveryType === 'meeting' ? '🤝 Личная встреча' : '📬 Почта';
+  const paymentLabel  = order.payment === 'card' ? '💳 Карта' : '💵 Наличные';
+  const itemsList = (order.items || [])
+    .map(i => `• ${i.name} × ${i.qty} — ${(Number(i.price) * Number(i.qty)).toFixed(2)} €`)
+    .join('\n');
+
   // Уведомляем курьера через бота
   if (courierId) {
-    const deliveryLabel = order.deliveryType === 'meeting' ? '🤝 Личная встреча' : '📬 Почта';
-    const paymentLabel  = order.payment === 'card' ? '💳 Карта' : '💵 Наличные';
-    const itemsList = (order.items || [])
-      .map(i => `• ${i.name} × ${i.qty} — ${(Number(i.price) * Number(i.qty)).toFixed(2)} €`)
-      .join('\n');
     const courierText =
       `📦 <b>НОВЫЙ ЗАКАЗ — ${order.city || '—'}</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━━\n` +
@@ -484,6 +485,37 @@ app.post('/api/save-order', (req, res) => {
 
     bot.sendMessage(courierId, courierText, { parse_mode: 'HTML' })
       .catch(err => console.error(`Не удалось отправить курьеру ${courierId}:`, err.message));
+  }
+
+  // Отправляем пользователю подтверждение с кнопкой открыть чат с курьером
+  if (tgUserId) {
+    const recipient = courierUsername
+      ? courierUsername.replace(/^@/, '')
+      : 'Manager_NRW_1';
+
+    const msgText = order.deliveryType === 'meeting'
+      ? `✅ <b>Заказ оформлен!</b>\n\n📍 ${order.city} · ${deliveryLabel}\n💰 ${paymentLabel}\n💎 <b>${order.total} €</b>\n\nНажмите кнопку ниже — откроется чат с курьером с готовым текстом заказа. Просто нажмите «Отправить».`
+      : `✅ <b>Заказ оформлен!</b>\n\n📬 Почта · ${paymentLabel}\n💎 <b>${order.total} €</b>\n\nМенеджер свяжется с вами в ближайшее время.`;
+
+    const text = orderText || (
+      `📦 ЗАКАЗ WAKASHOP\n` +
+      `Доставка: ${deliveryLabel}\n` +
+      `Город: ${order.city || '—'}\n` +
+      `Оплата: ${paymentLabel}\n` +
+      `───────────────\n` +
+      itemsList + `\n───────────────\n` +
+      `Итого: ${order.total} €`
+    );
+
+    const inlineKb = order.deliveryType === 'meeting' ? {
+      inline_keyboard: [[{
+        text: '✉️ Написать курьеру',
+        url: `https://t.me/${recipient}?text=${encodeURIComponent(text)}`,
+      }]],
+    } : undefined;
+
+    bot.sendMessage(tgUserId, msgText, { parse_mode: 'HTML', reply_markup: inlineKb })
+      .catch(err => console.error(`Не удалось отправить пользователю ${tgUserId}:`, err.message));
   }
 
   res.json({ ok: true });

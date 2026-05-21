@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
 
   const { tgUsername, tgUserId, deliveryType, city, payment, items, total, courierId,
-          courierName, mailOption, shippingCost,
+          courierName, courierUsername, mailOption, shippingCost,
           firstName, lastName, street, plz } = req.body;
 
   // ── Валидация ─────────────────────────────────────────────────
@@ -119,18 +119,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err });
   }
 
-  // ── Подтверждение клиенту ─────────────────────────────────────
-  if (tgUserId) {
-    tgSend(TOKEN, tgUserId,
-      `✅ <b>Заказ принят!</b>\n\n` +
-      `📍 ${esc(city)} · ${deliveryLabel}\n` +
-      `💰 ${paymentLabel}\n` +
-      `💎 <b>${esc(total)} €</b>\n\n` +
-      `⏳ Ожидайте — совсем скоро с вами свяжется курьер 🚚`
-    ).catch(() => {});
-  }
-
-  // ── Сохранение заказа + уведомление курьеру через бота ──────
+  // ── Сохранение заказа + уведомление курьеру + кнопка пользователю ──
   const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';
   fetch(`${BOT_URL}/api/save-order`, {
     method: 'POST',
@@ -147,6 +136,8 @@ export default async function handler(req, res) {
       status: 'new',
       courierId: courierId || null,
       courierName: courierName || null,
+      courierUsername: courierUsername || null,
+      orderText: text,
       ...(deliveryType === 'mail' && { firstName, lastName, address: `${street}, ${plz} ${city}` }),
     }),
   }).catch(() => {});

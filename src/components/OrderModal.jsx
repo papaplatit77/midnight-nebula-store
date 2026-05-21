@@ -178,6 +178,7 @@ export default function OrderModal({ onClose }) {
           total: grandTotal.toFixed(2),
           courierId: courierForCity?.chatId || null,
           courierName: courierForCity?.name || null,
+          courierUsername: courierForCity?.username || null,
           mailOption: deliveryType === 'mail' ? mailOption : null,
           shippingCost,
           ...(deliveryType === 'mail' && { firstName, lastName, street, plz }),
