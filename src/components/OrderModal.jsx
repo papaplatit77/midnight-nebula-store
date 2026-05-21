@@ -43,6 +43,8 @@ export default function OrderModal({ onClose }) {
   const [addedMap, setAddedMap] = useState({});
   const [visible, setVisible] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -153,25 +155,44 @@ export default function OrderModal({ onClose }) {
     );
   };
 
-  const handleSendOrder = () => {
-    if (items.length === 0) return;
+  const handleSendOrder = async () => {
+    if (items.length === 0 || sending) return;
 
-    const text = buildOrderText();
-    const recipient = (deliveryType === 'meeting' && courierForCity?.username)
-      ? courierForCity.username.replace(/^@/, '')
-      : 'Manager_NRW_1';
-    const encodedText = encodeURIComponent(text);
+    setSending(true);
+    setSendError('');
 
-    if (window.Telegram?.WebApp?.openTelegramLink) {
-      window.Telegram.WebApp.openTelegramLink(`https://t.me/${recipient}?text=${encodedText}`);
-      setTimeout(() => {
-        setSent(true);
-        clear();
-      }, 1000);
-    } else {
-      window.open(`https://t.me/${recipient}?text=${encodedText}`, '_blank', 'noopener');
+    const tgUser = tgHandle.trim() || (username ? username.replace('@', '') : '');
+    const orderCity = deliveryType === 'mail' ? deliveryCity.trim() : city;
+
+    try {
+      const res = await fetch(ORDER_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tgUsername: tgUser || null,
+          tgUserId: userId || null,
+          deliveryType,
+          city: orderCity,
+          payment,
+          items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
+          total: grandTotal.toFixed(2),
+          courierId: courierForCity?.chatId || null,
+          courierName: courierForCity?.name || null,
+          mailOption: deliveryType === 'mail' ? mailOption : null,
+          shippingCost,
+          ...(deliveryType === 'mail' && { firstName, lastName, street, plz }),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
+
       setSent(true);
       clear();
+    } catch (err) {
+      setSendError(err.message || 'Не удалось отправить. Попробуйте ещё раз.');
+    } finally {
+      setSending(false);
     }
   };
 
@@ -544,7 +565,7 @@ export default function OrderModal({ onClose }) {
                 <div className={styles.successIcon}>✅</div>
                 <h2 className={styles.successTitle}>Заказ отправлен!</h2>
                 <p className={styles.successSub}>
-                  Нажмите «Отправить» в открывшемся чате.
+                  Заказ принят! Курьер получил уведомление и скоро напишет вам в Telegram.
                 </p>
                 <button className={`${styles.nextBtn} ${styles.nextBtnActive}`} onClick={handleClose}>
                   Закрыть
@@ -627,14 +648,19 @@ export default function OrderModal({ onClose }) {
                   </div>
                 </div>
 
+                {sendError && (
+                  <p style={{ color: '#ff4444', fontSize: '0.85rem', marginBottom: '8px', textAlign: 'center' }}>
+                    ⚠️ {sendError}
+                  </p>
+                )}
                 <div className={styles.confirmBtns}>
-                  <button className={styles.backBtn} onClick={() => setStep(2)}>← Изменить</button>
+                  <button className={styles.backBtn} onClick={() => setStep(2)} disabled={sending}>← Изменить</button>
                   <button
                     className={`${styles.nextBtn} ${styles.nextBtnActive} ${styles.confirmSendBtn}`}
                     onClick={handleSendOrder}
-                    disabled={items.length === 0}
+                    disabled={items.length === 0 || sending}
                   >
-                    📨 Отправить заказ
+                    {sending ? '⏳ Отправляем...' : '📨 Отправить заказ'}
                   </button>
                 </div>
               </>
