@@ -159,9 +159,7 @@ export default function OrderModal({ onClose }) {
     if (items.length === 0) return;
 
     const text = buildOrderText();
-    const recipient = (deliveryType === 'meeting' && courierForCity?.username)
-      ? courierForCity.username.replace(/^@/, '')
-      : 'Manager_NRW_1';
+    const recipient = deliveryType === 'meeting' ? 'ManagerCobaltLabAroma' : 'Manager_NRW_1';
     const url = `https://t.me/${recipient}?text=${encodeURIComponent(text)}`;
 
     clear();
