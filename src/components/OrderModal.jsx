@@ -153,18 +153,19 @@ export default function OrderModal({ onClose }) {
     );
   };
 
-  const handleSendOrder = async () => {
+  const handleSendOrder = () => {
     if (items.length === 0) return;
 
     const text = buildOrderText();
+    const recipient = (deliveryType === 'meeting' && courierForCity?.username)
+      ? courierForCity.username.replace(/^@/, '')
+      : 'Manager_NRW_1';
+    const url = `https://t.me/${recipient}?text=${encodeURIComponent(text)}`;
 
     if (window.Telegram?.WebApp?.openTelegramLink) {
-      // В мини-аппе ?text= не поддерживается — копируем в буфер и открываем чат
-      try { await navigator.clipboard.writeText(text); } catch {}
-      window.Telegram.WebApp.openTelegramLink('https://t.me/Manager_NRW_1');
+      window.Telegram.WebApp.openTelegramLink(url);
     } else {
-      // В браузере ?text= работает — текст вставится сам
-      window.open(`https://t.me/Manager_NRW_1?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+      window.open(url, '_blank', 'noopener');
     }
 
     setSent(true);
@@ -540,9 +541,7 @@ export default function OrderModal({ onClose }) {
                 <div className={styles.successIcon}>✅</div>
                 <h2 className={styles.successTitle}>Заказ отправлен!</h2>
                 <p className={styles.successSub}>
-                  {window.Telegram?.WebApp?.openTelegramLink
-                    ? 'Текст заказа скопирован — вставьте его в открывшийся чат и отправьте.'
-                    : 'Нажмите отправить в открывшемся чате.'}
+                  Нажмите «Отправить» в открывшемся чате.
                 </p>
                 <button className={`${styles.nextBtn} ${styles.nextBtnActive}`} onClick={handleClose}>
                   Закрыть
