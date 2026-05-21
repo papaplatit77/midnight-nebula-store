@@ -165,13 +165,7 @@ export default function OrderModal({ onClose }) {
     const url = `https://t.me/${recipient}?text=${encodeURIComponent(text)}`;
 
     clear();
-
-    if (window.Telegram?.WebApp?.openTelegramLink) {
-      window.Telegram.WebApp.openTelegramLink(url);
-    } else {
-      window.open(url, '_blank', 'noopener');
-      setSent(true);
-    }
+    window.location.href = url;
   };
 
   return (
