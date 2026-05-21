@@ -160,16 +160,17 @@ export default function OrderModal({ onClose }) {
     const recipient = (deliveryType === 'meeting' && courierForCity?.username)
       ? courierForCity.username.replace(/^@/, '')
       : 'Manager_NRW_1';
-    const url = `https://t.me/${recipient}?text=${encodeURIComponent(text)}`;
+    const encodedText = encodeURIComponent(text);
 
-    if (window.Telegram?.WebApp?.openTelegramLink) {
-      window.Telegram.WebApp.openTelegramLink(url);
+    if (window.Telegram?.WebApp) {
+      // tg:// deep link перехватывается нативным Telegram и открывает чат с предзаполненным текстом
+      clear();
+      window.location.href = `tg://resolve?domain=${recipient}&text=${encodedText}`;
     } else {
-      window.open(url, '_blank', 'noopener');
+      window.open(`https://t.me/${recipient}?text=${encodedText}`, '_blank', 'noopener');
+      setSent(true);
+      clear();
     }
-
-    setSent(true);
-    clear();
   };
 
   return (
