@@ -155,45 +155,22 @@ export default function OrderModal({ onClose }) {
     );
   };
 
-  const handleSendOrder = async () => {
-    if (items.length === 0 || sending) return;
+  const handleSendOrder = () => {
+    if (items.length === 0) return;
 
-    setSending(true);
-    setSendError('');
+    const text = buildOrderText();
+    const recipient = (deliveryType === 'meeting' && courierForCity?.username)
+      ? courierForCity.username.replace(/^@/, '')
+      : 'Manager_NRW_1';
+    const url = `https://t.me/${recipient}?text=${encodeURIComponent(text)}`;
 
-    const tgUser = tgHandle.trim() || (username ? username.replace('@', '') : '');
-    const orderCity = deliveryType === 'mail' ? deliveryCity.trim() : city;
+    clear();
 
-    try {
-      const res = await fetch(ORDER_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tgUsername: tgUser || null,
-          tgUserId: userId || null,
-          deliveryType,
-          city: orderCity,
-          payment,
-          items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty })),
-          total: grandTotal.toFixed(2),
-          courierId: courierForCity?.chatId || null,
-          courierName: courierForCity?.name || null,
-          courierUsername: courierForCity?.username || null,
-          mailOption: deliveryType === 'mail' ? mailOption : null,
-          shippingCost,
-          ...(deliveryType === 'mail' && { firstName, lastName, street, plz }),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
-
+    if (window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(url);
+    } else {
+      window.open(url, '_blank', 'noopener');
       setSent(true);
-      clear();
-    } catch (err) {
-      setSendError(err.message || 'Не удалось отправить. Попробуйте ещё раз.');
-    } finally {
-      setSending(false);
     }
   };
 
