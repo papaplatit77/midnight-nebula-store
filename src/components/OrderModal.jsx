@@ -162,10 +162,12 @@ export default function OrderModal({ onClose }) {
       : 'Manager_NRW_1';
     const encodedText = encodeURIComponent(text);
 
-    if (window.Telegram?.WebApp) {
+    if (window.Telegram?.WebApp?.openTelegramLink) {
       window.Telegram.WebApp.openTelegramLink(`https://t.me/${recipient}?text=${encodedText}`);
-      setSent(true);
-      clear();
+      setTimeout(() => {
+        setSent(true);
+        clear();
+      }, 1000);
     } else {
       window.open(`https://t.me/${recipient}?text=${encodedText}`, '_blank', 'noopener');
       setSent(true);
