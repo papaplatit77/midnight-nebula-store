@@ -11,9 +11,10 @@ const ADMIN_IDS  = new Set([
   ADMIN_ID,
   ...((process.env.EXTRA_ADMINS || '').split(',').map(s => Number(s.trim())).filter(Boolean)),
 ]);
-const WEBAPP_URL = process.env.WEBAPP_URL || 'https://wakashop-snowy.vercel.app';
-const PORT       = process.env.PORT || 3001;
-const DB_FILE    = process.env.DB_FILE || path.join(__dirname, 'db.json');
+const WEBAPP_URL     = process.env.WEBAPP_URL || 'https://wakashop-snowy.vercel.app';
+const PORT           = process.env.PORT || 3001;
+const DB_FILE        = process.env.DB_FILE || path.join(__dirname, 'db.json');
+const LOG_CHANNEL_ID = process.env.LOG_CHANNEL_ID || null;
 
 // username или ссылка на аккаунт поддержки
 const SUPPORT_USERNAME = process.env.SUPPORT_USERNAME || null; // @yourname
@@ -74,10 +75,44 @@ function saveOrder(userId, order) {
   const db = loadDB();
   if (!db.orders) db.orders = {};
   if (!db.orders[userId]) db.orders[userId] = [];
-  db.orders[userId].unshift({ ...order, id: Date.now(), date: new Date().toISOString() });
-  // Хранить не более 50 заказов на пользователя
+  const id = Date.now();
+  db.orders[userId].unshift({ ...order, id, date: new Date().toISOString() });
   if (db.orders[userId].length > 50) db.orders[userId] = db.orders[userId].slice(0, 50);
   saveDB(db);
+  return id;
+}
+
+function findOrderById(orderId) {
+  const db = loadDB();
+  for (const [userId, orders] of Object.entries(db.orders || {})) {
+    const idx = orders.findIndex(o => String(o.id) === String(orderId));
+    if (idx !== -1) return { order: orders[idx], userId: Number(userId), idx };
+  }
+  return null;
+}
+
+function getCourierByChatId(chatId) {
+  return getCouriers().find(c => String(c.chatId) === String(chatId)) || null;
+}
+
+// сессии "добавить товар": { [courierId_orderId]: { [productId]: qty } }
+const addItemSessions = {};
+
+function buildAddItemKeyboard(courierId, orderId, session, products) {
+  const rows = products.map(p => {
+    const qty = session[p.id] || 0;
+    return [
+      { text: `${p.name}`, callback_data: `ai:info:${orderId}` },
+      { text: qty > 0 ? `−` : `·`, callback_data: qty > 0 ? `ai:rem:${orderId}:${courierId}:${p.id}` : `ai:noop` },
+      { text: qty > 0 ? `${qty}` : `0`, callback_data: `ai:noop` },
+      { text: `+`, callback_data: `ai:add:${orderId}:${courierId}:${p.id}` },
+    ];
+  });
+  rows.push([
+    { text: '✅ Подтвердить', callback_data: `ai:ok:${orderId}:${courierId}` },
+    { text: '❌ Отмена',      callback_data: `ai:cancel:${orderId}:${courierId}` },
+  ]);
+  return { inline_keyboard: rows };
 }
 
 // ── Состояния ────────────────────────────────────────────────
@@ -400,6 +435,123 @@ bot.on('callback_query', async (query) => {
     );
   }
 
+  // ── Добавить товар к заказу (курьер) ─────────────────────────
+  if (query.data.startsWith('ai:')) {
+    const parts = query.data.split(':');
+    const action = parts[1];
+
+    if (action === 'noop') return;
+    if (action === 'info') return;
+
+    const orderId   = parts[2];
+    const ownerUser = parts[3]; // tgUserId клиента
+    const sessionKey = `${query.from.id}_${orderId}`;
+
+    const courier = getCourierByChatId(query.from.id);
+    if (!courier) return bot.answerCallbackQuery(query.id, { text: '⛔ Не найден как курьер' });
+
+    const db      = loadDB();
+    const allProds = db.products || [];
+    const stockIds = courier.productIds && courier.productIds.length ? courier.productIds : allProds.map(p => p.id);
+    const stock    = allProds.filter(p => stockIds.includes(p.id) && p.inStock !== false);
+
+    if (action === 'open') {
+      addItemSessions[sessionKey] = {};
+      const kb = buildAddItemKeyboard(query.from.id, orderId, {}, stock);
+      return bot.sendMessage(query.message.chat.id,
+        `➕ <b>Добавить товар к заказу</b>\n\nВыберите товары из вашего склада:`,
+        { parse_mode: 'HTML', reply_markup: kb }
+      );
+    }
+
+    if (action === 'add' || action === 'rem') {
+      const productId = parts[4];
+      if (!addItemSessions[sessionKey]) addItemSessions[sessionKey] = {};
+      const sess = addItemSessions[sessionKey];
+      if (action === 'add') {
+        sess[productId] = (sess[productId] || 0) + 1;
+      } else {
+        sess[productId] = Math.max(0, (sess[productId] || 0) - 1);
+        if (sess[productId] === 0) delete sess[productId];
+      }
+      const kb = buildAddItemKeyboard(query.from.id, orderId, sess, stock);
+      return bot.editMessageReplyMarkup(kb, {
+        chat_id:    query.message.chat.id,
+        message_id: query.message.message_id,
+      }).catch(() => {});
+    }
+
+    if (action === 'cancel') {
+      delete addItemSessions[sessionKey];
+      return bot.editMessageText('❌ Отменено.', {
+        chat_id:    query.message.chat.id,
+        message_id: query.message.message_id,
+      }).catch(() => {});
+    }
+
+    if (action === 'ok') {
+      const sess = addItemSessions[sessionKey] || {};
+      if (!Object.keys(sess).length) {
+        return bot.answerCallbackQuery(query.id, { text: 'Ничего не выбрано' });
+      }
+
+      const found = findOrderById(orderId);
+      if (!found) {
+        return bot.answerCallbackQuery(query.id, { text: '⚠️ Заказ не найден' });
+      }
+
+      // Добавляем товары к заказу
+      const addedItems = [];
+      for (const [productId, qty] of Object.entries(sess)) {
+        if (qty <= 0) continue;
+        const prod = allProds.find(p => String(p.id) === String(productId));
+        if (!prod) continue;
+        const existing = found.order.items.find(i => String(i.id) === String(productId));
+        if (existing) {
+          existing.qty += qty;
+        } else {
+          found.order.items.push({ id: prod.id, name: prod.name, price: prod.price, qty });
+        }
+        addedItems.push(`• ${prod.name} × ${qty}`);
+      }
+
+      // Пересчитываем итог
+      found.order.total = found.order.items
+        .reduce((s, i) => s + Number(i.price) * Number(i.qty), 0)
+        .toFixed(2);
+
+      // Сохраняем
+      const dbWrite = loadDB();
+      const idx = dbWrite.orders[found.userId].findIndex(o => String(o.id) === String(orderId));
+      if (idx !== -1) {
+        dbWrite.orders[found.userId][idx] = found.order;
+        saveDB(dbWrite);
+      }
+
+      delete addItemSessions[sessionKey];
+
+      const logText =
+        `📝 <b>Курьер добавил товары к заказу</b>\n` +
+        `━━━━━━━━━━━━━━━━━━━━━\n` +
+        `👤 Клиент: ${found.order.tgUsername || `id:${found.userId}`}\n` +
+        `🚗 Курьер: ${courier.name || query.from.first_name}\n` +
+        `📍 Город: ${found.order.city || '—'}\n` +
+        `━━━━━━━━━━━━━━━━━━━━━\n` +
+        addedItems.join('\n') + '\n' +
+        `━━━━━━━━━━━━━━━━━━━━━\n` +
+        `💎 <b>Новый итог: ${found.order.total} €</b>`;
+
+      bot.sendMessage(ADMIN_ID, logText, { parse_mode: 'HTML' }).catch(() => {});
+
+      return bot.editMessageText(
+        `✅ <b>Товары добавлены!</b>\n\n${addedItems.join('\n')}\n\n💎 Новый итог: <b>${found.order.total} €</b>`,
+        { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'HTML' }
+      ).catch(() => {});
+    }
+
+    return;
+  }
+
   const match = query.data.match(/^orders_(\d+)_(\d+)$/);
   if (!match) return;
 
@@ -462,7 +614,7 @@ app.post('/api/products', (req, res) => {
 app.post('/api/save-order', (req, res) => {
   const { tgUserId, courierId, courierName, courierUsername, orderText, ...order } = req.body;
 
-  if (tgUserId) saveOrder(tgUserId, order);
+  const orderId = tgUserId ? saveOrder(tgUserId, order) : null;
 
   const deliveryLabel = order.deliveryType === 'meeting' ? '🤝 Личная встреча' : '📬 Почта';
   const paymentLabel  = order.payment === 'card' ? '💳 Карта' : '💵 Наличные';
@@ -483,7 +635,14 @@ app.post('/api/save-order', (req, res) => {
       `━━━━━━━━━━━━━━━━━━━━━\n` +
       `💎 <b>Итого: ${order.total} €</b>`;
 
-    bot.sendMessage(courierId, courierText, { parse_mode: 'HTML' })
+    const courierKb = orderId ? {
+      inline_keyboard: [[{
+        text: '➕ Добавить товар',
+        callback_data: `ai:open:${orderId}:${tgUserId || 0}`,
+      }]],
+    } : undefined;
+
+    bot.sendMessage(courierId, courierText, { parse_mode: 'HTML', reply_markup: courierKb })
       .catch(err => console.error(`Не удалось отправить курьеру ${courierId}:`, err.message));
   }
 
@@ -593,17 +752,36 @@ app.patch('/api/admin/orders/:orderId/status', (req, res) => {
   const { status } = req.body;
   if (!status) return res.status(400).json({ error: 'status required' });
   const db = loadDB();
-  let found = false;
+  let foundOrder = null;
   for (const userId of Object.keys(db.orders || {})) {
     const idx = db.orders[userId].findIndex(o => String(o.id) === String(orderId));
     if (idx !== -1) {
       db.orders[userId][idx].status = status;
-      found = true;
+      foundOrder = db.orders[userId][idx];
       break;
     }
   }
-  if (!found) return res.status(404).json({ error: 'Order not found' });
+  if (!foundOrder) return res.status(404).json({ error: 'Order not found' });
   saveDB(db);
+
+  // Отправляем в канал логов если заказ выполнен
+  if (LOG_CHANNEL_ID && status === 'completed' && foundOrder) {
+    const o = foundOrder;
+    const itemsList = (o.items || []).map(i => `• ${i.name} × ${i.qty}`).join('\n');
+    const logText =
+      `✅ <b>ВЫПОЛНЕННЫЙ ЗАКАЗ — WAKASHOP</b>\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `👤 ${o.tgUsername || `id:${o.tgUserId || '—'}`}\n` +
+      `📍 ${o.city || '—'} · ${o.deliveryType === 'meeting' ? '🤝 Встреча' : '📬 Почта'}\n` +
+      `💰 ${o.payment === 'card' ? '💳 Карта' : '💵 Наличные'}\n` +
+      `🕐 ${new Date(o.date).toLocaleString('ru-RU', { timeZone: 'Europe/Berlin' })}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      itemsList + '\n' +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `💎 <b>Итого: ${o.total} €</b>`;
+    bot.sendMessage(LOG_CHANNEL_ID, logText, { parse_mode: 'HTML' }).catch(() => {});
+  }
+
   res.json({ ok: true });
 });
 
