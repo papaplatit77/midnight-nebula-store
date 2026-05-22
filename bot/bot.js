@@ -14,7 +14,7 @@ const ADMIN_IDS  = new Set([
 const WEBAPP_URL     = process.env.WEBAPP_URL || 'https://wakashop-snowy.vercel.app';
 const PORT           = process.env.PORT || 3001;
 const DB_FILE        = process.env.DB_FILE || path.join(__dirname, 'db.json');
-const LOG_CHANNEL_ID = process.env.LOG_CHANNEL_ID || null;
+const LOG_CHANNEL_ID = process.env.TELEGRAM_LOG_CHAT_ID || null;
 
 // username или ссылка на аккаунт поддержки
 const SUPPORT_USERNAME = process.env.SUPPORT_USERNAME || null; // @yourname

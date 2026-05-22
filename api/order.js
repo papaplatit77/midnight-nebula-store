@@ -44,7 +44,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const TOKEN   = process.env.TELEGRAM_BOT_TOKEN;
-  const CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID;
+  const CHAT_ID = process.env.TELEGRAM_GROUP_CHAT_ID || process.env.TELEGRAM_ADMIN_CHAT_ID;
   if (!TOKEN || !CHAT_ID) return res.status(500).json({ error: 'Bot not configured' });
 
 
