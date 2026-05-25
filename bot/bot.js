@@ -97,6 +97,8 @@ function getCourierByChatId(chatId) {
 
 // сессии "добавить товар": { [courierId_orderId]: { [productId]: qty } }
 const addItemSessions = {};
+// ожидание ввода даты для статистики: { [adminChatId]: courierId }
+const waitingCourierDate = {};
 
 function buildAddItemKeyboard(courierId, orderId, session, products) {
   const rows = products.map(p => {
@@ -327,6 +329,23 @@ bot.on('message', async (msg) => {
     if (msgText === '🚫 Забанить')  { waiting[chatId] = 'ban';   return bot.sendMessage(chatId, '🚫 Отправьте @username или ID.\n\n<i>Отмена — /admin</i>', { parse_mode: 'HTML', reply_markup: ADMIN_KB }); }
     if (msgText === '✅ Разбанить') { waiting[chatId] = 'unban'; return bot.sendMessage(chatId, '✅ Отправьте @username или ID.\n\n<i>Отмена — /admin</i>', { parse_mode: 'HTML', reply_markup: ADMIN_KB }); }
 
+    // Ввод даты для статистики курьера
+    if (waitingCourierDate[chatId]) {
+      const courierId = waitingCourierDate[chatId];
+      delete waitingCourierDate[chatId];
+      const match = msgText.match(/^(\d{1,2})\.(\d{2})$/);
+      if (!match) return bot.sendMessage(chatId, '❌ Неверный формат. Введите дату как <b>ДД.ММ</b>, например <b>15.05</b>', { parse_mode: 'HTML', reply_markup: ADMIN_KB });
+      const day   = parseInt(match[1]);
+      const month = parseInt(match[2]) - 1;
+      const year  = new Date().getFullYear();
+      const fromDate = new Date(year, month, day, 0, 0, 0, 0);
+      if (isNaN(fromDate.getTime())) return bot.sendMessage(chatId, '❌ Неверная дата.', { reply_markup: ADMIN_KB });
+      const fromTs = fromDate.getTime();
+      return bot.sendMessage(chatId, '🔍 Ищу заказы...', { reply_markup: ADMIN_KB }).then(() =>
+        bot.emit('callback_query', { id: '', from: { id: chatId }, message: { chat: { id: chatId } }, data: `cs:list:${courierId}:${fromTs}:0` })
+      );
+    }
+
     if (msgText === '📊 По курьерам') {
       const couriers = getCouriers();
       if (!couriers.length) return bot.sendMessage(chatId, '📊 Курьеры не добавлены.', { reply_markup: ADMIN_KB });
@@ -454,101 +473,75 @@ bot.on('callback_query', async (query) => {
     const parts  = query.data.split(':');
     const action = parts[1];
 
-    // cs:courier:COURIERID — выбрали курьера, показать периоды
+    // cs:courier:COURIERID — выбрали курьера, просим ввести дату
     if (action === 'courier') {
-      const courierId   = parts[2];
-      const courier     = getCourierByChatId(courierId);
+      const courierId    = parts[2];
+      const courier      = getCourierByChatId(courierId);
       const courierLabel = courier?.name || courier?.username || `id:${courierId}`;
-      const kb = { inline_keyboard: [
-        [{ text: 'Сегодня',    callback_data: `cs:list:${courierId}:today:0` },
-         { text: 'Вчера',      callback_data: `cs:list:${courierId}:yesterday:0` }],
-        [{ text: '7 дней',     callback_data: `cs:list:${courierId}:7d:0` },
-         { text: '30 дней',    callback_data: `cs:list:${courierId}:30d:0` }],
-        [{ text: 'Всё время',  callback_data: `cs:list:${courierId}:all:0` }],
-      ]};
+      waitingCourierDate[query.message.chat.id] = courierId;
       return bot.editMessageText(
-        `🚗 <b>${courierLabel}</b>\n\nВыберите период:`,
-        { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'HTML', reply_markup: kb }
+        `🚗 <b>${courierLabel}</b>\n\nВведите дату начала в формате <b>ДД.ММ</b>\n<i>Например: 15.05</i>\n\nПокажу все выполненные заказы с 00:00 этого дня по сегодня.`,
+        { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'HTML' }
       ).catch(() => {});
     }
 
-    // cs:list:COURIERID:PERIOD:PAGE — список заказов кнопками
+    // cs:list:COURIERID:FROMTS:PAGE — список заказов кнопками (FROMTS = timestamp начала)
     if (action === 'list') {
-      const courierId   = parts[2];
-      const period      = parts[3];
-      const page        = Number(parts[4] || 0);
-      const PAGE_SIZE   = 8;
-      const courier     = getCourierByChatId(courierId);
+      const courierId    = parts[2];
+      const fromTs       = Number(parts[3]);
+      const page         = Number(parts[4] || 0);
+      const PAGE_SIZE    = 8;
+      const courier      = getCourierByChatId(courierId);
       const courierLabel = courier?.name || courier?.username || `id:${courierId}`;
-      const db          = loadDB();
-
-      const now = new Date();
-      const berlinOffset = 2 * 60 * 60 * 1000; // UTC+2
-      const todayStart = new Date(new Date(now.toLocaleDateString('ru-RU', { timeZone: 'Europe/Berlin' }).split('.').reverse().join('-')).getTime());
-
-      function getFrom(p) {
-        if (p === 'today')     return new Date(todayStart);
-        if (p === 'yesterday') { const d = new Date(todayStart); d.setDate(d.getDate() - 1); return d; }
-        if (p === '7d')        { const d = new Date(now); d.setDate(d.getDate() - 7); return d; }
-        if (p === '30d')       { const d = new Date(now); d.setDate(d.getDate() - 30); return d; }
-        return null;
-      }
-      function getTo(p) {
-        if (p === 'yesterday') return new Date(todayStart);
-        return null;
-      }
-
-      const fromDate = getFrom(period);
-      const toDate   = getTo(period);
+      const db           = loadDB();
+      const fromDate     = fromTs ? new Date(fromTs) : null;
 
       const allCompleted = Object.values(db.orders || {}).flat().filter(o => {
         if (o.status !== 'completed') return false;
         if (String(o.courierId) !== String(courierId)) return false;
-        const d = new Date(o.completedAt || o.date);
-        if (fromDate && d < fromDate) return false;
-        if (toDate   && d >= toDate)  return false;
+        if (fromDate && new Date(o.completedAt || o.date) < fromDate) return false;
         return true;
       }).sort((a, b) => new Date(b.completedAt || b.date) - new Date(a.completedAt || a.date));
 
-      const totalSum  = allCompleted.reduce((s, o) => s + parseFloat(o.total || 0), 0);
-      const slice     = allCompleted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-      const periodLabel = { today: 'Сегодня', yesterday: 'Вчера', '7d': '7 дней', '30d': '30 дней', all: 'Всё время' }[period] || period;
+      const totalSum = allCompleted.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+      const slice    = allCompleted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+      const dateLabel = fromDate
+        ? `с ${fromDate.toLocaleDateString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit' })}`
+        : 'всё время';
 
       if (!allCompleted.length) {
-        const kb = { inline_keyboard: [[{ text: '← Назад', callback_data: `cs:courier:${courierId}` }]] };
-        return bot.editMessageText(
-          `🚗 <b>${courierLabel}</b> · ${periodLabel}\n\nВыполненных заказов нет.`,
-          { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'HTML', reply_markup: kb }
-        ).catch(() => {});
+        return bot.sendMessage(query.message.chat.id,
+          `🚗 <b>${courierLabel}</b> · ${dateLabel}\n\nВыполненных заказов нет.`,
+          { parse_mode: 'HTML', reply_markup: ADMIN_KB }
+        );
       }
 
       const orderButtons = slice.map(o => {
-        const t = new Date(o.completedAt || o.date).toLocaleString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const t    = new Date(o.completedAt || o.date).toLocaleString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         const nick = o.tgUsername ? `@${o.tgUsername.replace(/^@/, '')}` : '—';
-        return [{ text: `📍${o.city || '—'} · ${nick} · ${o.total}€ · ${t}`, callback_data: `cs:order:${o.id}:${courierId}:${period}:${page}` }];
+        return [{ text: `📍${o.city || '—'} · ${nick} · ${o.total}€ · ${t}`, callback_data: `cs:order:${o.id}:${courierId}:${fromTs}:${page}` }];
       });
 
       const nav = [];
-      if (page > 0)                                  nav.push({ text: '← Назад', callback_data: `cs:list:${courierId}:${period}:${page - 1}` });
-      if ((page + 1) * PAGE_SIZE < allCompleted.length) nav.push({ text: 'Вперёд →', callback_data: `cs:list:${courierId}:${period}:${page + 1}` });
+      if (page > 0)                                      nav.push({ text: '← Назад',   callback_data: `cs:list:${courierId}:${fromTs}:${page - 1}` });
+      if ((page + 1) * PAGE_SIZE < allCompleted.length)  nav.push({ text: 'Вперёд →',  callback_data: `cs:list:${courierId}:${fromTs}:${page + 1}` });
 
       const kb = { inline_keyboard: [
         ...orderButtons,
         ...(nav.length ? [nav] : []),
-        [{ text: '← К периодам', callback_data: `cs:courier:${courierId}` }],
       ]};
 
-      return bot.editMessageText(
-        `🚗 <b>${courierLabel}</b> · ${periodLabel}\n📦 Заказов: <b>${allCompleted.length}</b> · 💎 <b>${totalSum.toFixed(2)} €</b>`,
-        { chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'HTML', reply_markup: kb }
-      ).catch(() => {});
+      return bot.sendMessage(query.message.chat.id,
+        `🚗 <b>${courierLabel}</b> · ${dateLabel}\n📦 Заказов: <b>${allCompleted.length}</b> · 💎 <b>${totalSum.toFixed(2)} €</b>`,
+        { parse_mode: 'HTML', reply_markup: kb }
+      );
     }
 
-    // cs:order:ORDERID:COURIERID:PERIOD:PAGE — детальный вид заказа
+    // cs:order:ORDERID:COURIERID:FROMTS:PAGE — детальный вид заказа
     if (action === 'order') {
       const orderId   = parts[2];
       const courierId = parts[3];
-      const period    = parts[4];
+      const fromTs    = parts[4];
       const page      = parts[5] || 0;
       const found     = findOrderById(orderId);
 
@@ -567,7 +560,7 @@ bot.on('callback_query', async (query) => {
         `━━━━━━━━━━━━━━━━━━━━━\n` +
         `💎 <b>${o.total} €</b>`;
 
-      const kb = { inline_keyboard: [[{ text: '← К списку', callback_data: `cs:list:${courierId}:${period}:${page}` }]] };
+      const kb = { inline_keyboard: [[{ text: '← К списку', callback_data: `cs:list:${courierId}:${fromTs}:${page}` }]] };
       return bot.editMessageText(text, {
         chat_id: query.message.chat.id, message_id: query.message.message_id, parse_mode: 'HTML', reply_markup: kb
       }).catch(() => {});
@@ -906,16 +899,17 @@ app.patch('/api/admin/orders/:orderId/status', (req, res) => {
   if (!foundOrder) return res.status(404).json({ error: 'Order not found' });
   saveDB(db);
 
-  // Отправляем в канал логов если заказ выполнен
-  if (LOG_CHANNEL_ID && status === 'completed' && foundOrder) {
+  // Отправляем в канал логов при смене статуса
+  if (LOG_CHANNEL_ID && foundOrder && ['completed', 'cancelled'].includes(status)) {
     const o = foundOrder;
     const courierLabel = o.courierName ? `🚗 <b>${o.courierName}</b>` : `🚗 Курьер неизвестен`;
     const itemsList = (o.items || []).map(i => `• ${i.name} × ${i.qty}`).join('\n');
-    const completedTime = new Date(o.completedAt || Date.now()).toLocaleString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const timeNow = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const statusLine = status === 'completed' ? `✅ <b>Выполнен</b>` : `❌ <b>Отменён</b>`;
     const logText =
       `${courierLabel}\n` +
       `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n` +
-      `✅ <b>Выполнен</b> · ${completedTime}\n` +
+      `${statusLine} · ${timeNow}\n` +
       `👤 ${o.tgUsername || `id:${o.tgUserId || '—'}`}\n` +
       `📍 ${o.city || '—'}\n` +
       `💰 ${o.payment === 'card' ? '💳 Карта' : '💵 Наличные'}\n` +
@@ -936,17 +930,37 @@ app.delete('/api/admin/orders/:orderId', (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   const { orderId } = req.params;
   const db = loadDB();
-  let found = false;
+  let deletedOrder = null;
   for (const userId of Object.keys(db.orders || {})) {
     const idx = db.orders[userId].findIndex(o => String(o.id) === String(orderId));
     if (idx !== -1) {
+      deletedOrder = db.orders[userId][idx];
       db.orders[userId].splice(idx, 1);
-      found = true;
       break;
     }
   }
-  if (!found) return res.status(404).json({ error: 'Order not found' });
+  if (!deletedOrder) return res.status(404).json({ error: 'Order not found' });
   saveDB(db);
+
+  if (LOG_CHANNEL_ID && deletedOrder) {
+    const o = deletedOrder;
+    const courierLabel = o.courierName ? `🚗 <b>${o.courierName}</b>` : `🚗 Курьер неизвестен`;
+    const itemsList = (o.items || []).map(i => `• ${i.name} × ${i.qty}`).join('\n');
+    const timeNow = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    bot.sendMessage(LOG_CHANNEL_ID,
+      `${courierLabel}\n` +
+      `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n` +
+      `🗑 <b>Удалён</b> · ${timeNow}\n` +
+      `👤 ${o.tgUsername || `id:${o.tgUserId || '—'}`}\n` +
+      `📍 ${o.city || '—'}\n` +
+      `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n` +
+      itemsList + '\n' +
+      `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n` +
+      `💎 <b>${o.total} €</b>`,
+      { parse_mode: 'HTML' }
+    ).catch(() => {});
+  }
+
   res.json({ ok: true });
 });
 
