@@ -135,6 +135,7 @@ const ADMIN_KB = {
   keyboard: [
     [{ text: '📢 Рассылка'  }, { text: '👥 Статистика' }],
     [{ text: '🚫 Забанить'  }, { text: '✅ Разбанить'  }],
+    [{ text: '📊 По курьерам' }],
   ],
   resize_keyboard: true,
   is_persistent: true,
@@ -326,6 +327,18 @@ bot.on('message', async (msg) => {
     if (msgText === '🚫 Забанить')  { waiting[chatId] = 'ban';   return bot.sendMessage(chatId, '🚫 Отправьте @username или ID.\n\n<i>Отмена — /admin</i>', { parse_mode: 'HTML', reply_markup: ADMIN_KB }); }
     if (msgText === '✅ Разбанить') { waiting[chatId] = 'unban'; return bot.sendMessage(chatId, '✅ Отправьте @username или ID.\n\n<i>Отмена — /admin</i>', { parse_mode: 'HTML', reply_markup: ADMIN_KB }); }
 
+    if (msgText === '📊 По курьерам') {
+      const couriers = getCouriers();
+      if (!couriers.length) return bot.sendMessage(chatId, '📊 Курьеры не добавлены.', { reply_markup: ADMIN_KB });
+      const kb = {
+        inline_keyboard: couriers.map(c => ([{
+          text: `🚗 ${c.name || c.username || `id:${c.chatId}`}`,
+          callback_data: `courier_stats_${c.chatId}`,
+        }])),
+      };
+      return bot.sendMessage(chatId, '📊 <b>Выберите курьера:</b>', { parse_mode: 'HTML', reply_markup: kb });
+    }
+
     return;
   }
 
@@ -432,6 +445,86 @@ bot.on('callback_query', async (query) => {
         parse_mode: 'HTML',
         reply_markup: inlineKb.length ? { inline_keyboard: inlineKb } : USER_KB,
       }
+    );
+  }
+
+  // ── Статистика по курьеру (админ) ────────────────────────────
+  if (query.data.startsWith('courier_stats_')) {
+    if (!isAdmin(query.from.id)) return;
+    const courierId = query.data.replace('courier_stats_', '');
+    const courier   = getCourierByChatId(courierId);
+    const db        = loadDB();
+
+    // Собираем все выполненные заказы этого курьера
+    const allOrders = Object.values(db.orders || {}).flat();
+    const completed = allOrders.filter(o =>
+      o.status === 'completed' && String(o.courierId) === String(courierId)
+    );
+
+    const courierLabel = courier?.name || courier?.username || `id:${courierId}`;
+
+    if (!completed.length) {
+      return bot.sendMessage(query.message.chat.id,
+        `🚗 <b>${courierLabel}</b>\n\nВыполненных заказов нет.`,
+        { parse_mode: 'HTML', reply_markup: ADMIN_KB }
+      );
+    }
+
+    const totalSum = completed.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+    const PAGE = 10;
+    const slice = completed.slice(0, PAGE);
+
+    const lines = slice.map((o, i) => {
+      const date = new Date(o.date).toLocaleString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      const items = (o.items || []).map(it => `  • ${it.name} ×${it.qty}`).join('\n');
+      return `<b>#${i + 1}</b> · ${date}\n👤 ${o.tgUsername || '—'} · 📍 ${o.city || '—'}\n${items}\n💎 <b>${o.total} €</b>`;
+    });
+
+    const header = `🚗 <b>${courierLabel}</b> — выполнено заказов: <b>${completed.length}</b>\n💰 Сумма: <b>${totalSum.toFixed(2)} €</b>\n${'━'.repeat(21)}\n\n`;
+    const text   = header + lines.join('\n\n─────────\n\n');
+
+    // Если больше PAGE заказов — добавляем кнопку "ещё"
+    const kb = completed.length > PAGE ? {
+      inline_keyboard: [[{
+        text: `Ещё (${completed.length - PAGE}) →`,
+        callback_data: `courier_stats_more_${courierId}_${PAGE}`,
+      }]],
+    } : undefined;
+
+    return bot.sendMessage(query.message.chat.id, text, { parse_mode: 'HTML', reply_markup: kb });
+  }
+
+  if (query.data.startsWith('courier_stats_more_')) {
+    if (!isAdmin(query.from.id)) return;
+    const parts     = query.data.split('_');
+    const courierId = parts[3];
+    const offset    = Number(parts[4]);
+    const courier   = getCourierByChatId(courierId);
+    const db        = loadDB();
+    const PAGE      = 10;
+
+    const completed = Object.values(db.orders || {}).flat().filter(o =>
+      o.status === 'completed' && String(o.courierId) === String(courierId)
+    );
+    const slice = completed.slice(offset, offset + PAGE);
+    const courierLabel = courier?.name || courier?.username || `id:${courierId}`;
+
+    const lines = slice.map((o, i) => {
+      const date = new Date(o.date).toLocaleString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      const items = (o.items || []).map(it => `  • ${it.name} ×${it.qty}`).join('\n');
+      return `<b>#${offset + i + 1}</b> · ${date}\n👤 ${o.tgUsername || '—'} · 📍 ${o.city || '—'}\n${items}\n💎 <b>${o.total} €</b>`;
+    });
+
+    const kb = completed.length > offset + PAGE ? {
+      inline_keyboard: [[{
+        text: `Ещё (${completed.length - offset - PAGE}) →`,
+        callback_data: `courier_stats_more_${courierId}_${offset + PAGE}`,
+      }]],
+    } : undefined;
+
+    return bot.sendMessage(query.message.chat.id,
+      `🚗 <b>${courierLabel}</b> · стр. ${Math.floor(offset / PAGE) + 2}\n${'━'.repeat(21)}\n\n` + lines.join('\n\n─────────\n\n'),
+      { parse_mode: 'HTML', reply_markup: kb }
     );
   }
 
