@@ -614,7 +614,7 @@ app.post('/api/products', (req, res) => {
 app.post('/api/save-order', (req, res) => {
   const { tgUserId, courierId, courierName, courierUsername, orderText, ...order } = req.body;
 
-  const orderId = tgUserId ? saveOrder(tgUserId, order) : null;
+  const orderId = tgUserId ? saveOrder(tgUserId, { ...order, courierId: courierId || null, courierName: courierName || null }) : null;
 
   const deliveryLabel = order.deliveryType === 'meeting' ? '🤝 Личная встреча' : '📬 Почта';
   const paymentLabel  = order.payment === 'card' ? '💳 Карта' : '💵 Наличные';
@@ -767,18 +767,19 @@ app.patch('/api/admin/orders/:orderId/status', (req, res) => {
   // Отправляем в канал логов если заказ выполнен
   if (LOG_CHANNEL_ID && status === 'completed' && foundOrder) {
     const o = foundOrder;
+    const courierLabel = o.courierName ? `🚗 <b>${o.courierName}</b>` : `🚗 Курьер неизвестен`;
     const itemsList = (o.items || []).map(i => `• ${i.name} × ${i.qty}`).join('\n');
     const logText =
-      `✅ <b>ВЫПОЛНЕННЫЙ ЗАКАЗ — WAKASHOP</b>\n` +
-      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `${courierLabel}\n` +
+      `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n` +
+      `✅ <b>Выполнен</b> · ${new Date(o.date).toLocaleString('ru-RU', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}\n` +
       `👤 ${o.tgUsername || `id:${o.tgUserId || '—'}`}\n` +
-      `📍 ${o.city || '—'} · ${o.deliveryType === 'meeting' ? '🤝 Встреча' : '📬 Почта'}\n` +
+      `📍 ${o.city || '—'}\n` +
       `💰 ${o.payment === 'card' ? '💳 Карта' : '💵 Наличные'}\n` +
-      `🕐 ${new Date(o.date).toLocaleString('ru-RU', { timeZone: 'Europe/Berlin' })}\n` +
-      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n` +
       itemsList + '\n' +
-      `━━━━━━━━━━━━━━━━━━━━━\n` +
-      `💎 <b>Итого: ${o.total} €</b>`;
+      `▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n` +
+      `💎 <b>${o.total} €</b>`;
     bot.sendMessage(LOG_CHANNEL_ID, logText, { parse_mode: 'HTML' }).catch(() => {});
   }
 
