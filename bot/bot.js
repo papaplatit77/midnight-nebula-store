@@ -100,6 +100,40 @@ const addItemSessions = {};
 // ожидание ввода даты для статистики: { [adminChatId]: courierId }
 const waitingCourierDate = {};
 
+// ── Управление складом курьера ────────────────────────────────
+function adjustCourierStock(courierId, items, delta) {
+  // delta: -1 списать, +1 вернуть
+  const db  = loadDB();
+  const idx = (db.couriers || []).findIndex(c => String(c.chatId) === String(courierId));
+  if (idx === -1) return null;
+  if (!db.couriers[idx].stock) db.couriers[idx].stock = {};
+  const changes = [];
+  for (const item of items) {
+    const pid    = String(item.id || item.name);
+    const before = db.couriers[idx].stock[pid] || 0;
+    const after  = before + delta * Number(item.qty || 1);
+    db.couriers[idx].stock[pid] = after;
+    changes.push({ name: item.name, qty: Number(item.qty || 1), before, after });
+  }
+  saveDB(db);
+  return changes;
+}
+
+function getCourierStockLine(courierId) {
+  const db      = loadDB();
+  const courier = (db.couriers || []).find(c => String(c.chatId) === String(courierId));
+  if (!courier || !courier.stock) return '';
+  const products = db.products || [];
+  const lines = Object.entries(courier.stock)
+    .filter(([, qty]) => qty !== 0)
+    .map(([pid, qty]) => {
+      const p = products.find(p => String(p.id) === pid);
+      const name = p ? p.name : pid;
+      return `  • ${name}: <b>${qty}</b>`;
+    });
+  return lines.length ? '\n📦 Остаток на складе:\n' + lines.join('\n') : '';
+}
+
 function buildAddItemKeyboard(courierId, orderId, session, products) {
   const rows = products.map(p => {
     const qty = session[p.id] || 0;
@@ -664,6 +698,14 @@ bot.on('callback_query', async (query) => {
 
       delete addItemSessions[sessionKey];
 
+      // Списываем добавленные товары со склада курьера
+      const addedForStock = Object.entries(sess).map(([productId, qty]) => {
+        const prod = allProds.find(p => String(p.id) === String(productId));
+        return prod ? { id: productId, name: prod.name, qty } : null;
+      }).filter(Boolean);
+      const stockChanges = adjustCourierStock(query.from.id, addedForStock, -1);
+      const stockLine    = getCourierStockLine(query.from.id);
+
       const logText =
         `📝 <b>Курьер добавил товары к заказу</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━━\n` +
@@ -673,7 +715,8 @@ bot.on('callback_query', async (query) => {
         `━━━━━━━━━━━━━━━━━━━━━\n` +
         addedItems.join('\n') + '\n' +
         `━━━━━━━━━━━━━━━━━━━━━\n` +
-        `💎 <b>Новый итог: ${found.order.total} €</b>`;
+        `💎 <b>Новый итог: ${found.order.total} €</b>` +
+        stockLine;
 
       bot.sendMessage(ADMIN_ID, logText, { parse_mode: 'HTML' }).catch(() => {});
 
@@ -756,8 +799,33 @@ app.post('/api/save-order', (req, res) => {
     .map(i => `• ${i.name} × ${i.qty} — ${(Number(i.price) * Number(i.qty)).toFixed(2)} €`)
     .join('\n');
 
+  // Списываем товары со склада курьера
+  if (courierId && order.items?.length) {
+    const stockChanges = adjustCourierStock(courierId, order.items, -1);
+    if (stockChanges) {
+      const stockLine = getCourierStockLine(courierId);
+      const courierName_ = courierName || `id:${courierId}`;
+      // Предупреждение если что-то ушло в минус
+      const negative = stockChanges.filter(c => c.after < 0);
+      if (negative.length) {
+        const warnText = `⚠️ <b>Склад курьера ${courierName_} ушёл в минус!</b>\n` +
+          negative.map(c => `• ${c.name}: было ${c.before}, стало <b>${c.after}</b>`).join('\n');
+        bot.sendMessage(ADMIN_ID, warnText, { parse_mode: 'HTML' }).catch(() => {});
+      }
+      if (LOG_CHANNEL_ID) {
+        bot.sendMessage(LOG_CHANNEL_ID,
+          `📦 <b>Списано со склада</b> · 🚗 ${courierName_}\n` +
+          stockChanges.map(c => `• ${c.name} × ${c.qty} (было: ${c.before} → стало: ${c.after})`).join('\n') +
+          stockLine,
+          { parse_mode: 'HTML' }
+        ).catch(() => {});
+      }
+    }
+  }
+
   // Уведомляем курьера через бота
   if (courierId) {
+    const stockLine  = getCourierStockLine(courierId);
     const courierText =
       `📦 <b>НОВЫЙ ЗАКАЗ — ${order.city || '—'}</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━━\n` +
@@ -767,7 +835,8 @@ app.post('/api/save-order', (req, res) => {
       `━━━━━━━━━━━━━━━━━━━━━\n` +
       `${itemsList}\n` +
       `━━━━━━━━━━━━━━━━━━━━━\n` +
-      `💎 <b>Итого: ${order.total} €</b>`;
+      `💎 <b>Итого: ${order.total} €</b>` +
+      stockLine;
 
     const courierKb = orderId ? {
       inline_keyboard: [[{
@@ -899,6 +968,20 @@ app.patch('/api/admin/orders/:orderId/status', (req, res) => {
   if (!foundOrder) return res.status(404).json({ error: 'Order not found' });
   saveDB(db);
 
+  // Возвращаем товары на склад курьера при отмене
+  if (status === 'cancelled' && foundOrder.courierId && foundOrder.items?.length) {
+    const stockChanges = adjustCourierStock(foundOrder.courierId, foundOrder.items, +1);
+    if (stockChanges && LOG_CHANNEL_ID) {
+      const stockLine = getCourierStockLine(foundOrder.courierId);
+      bot.sendMessage(LOG_CHANNEL_ID,
+        `↩️ <b>Возврат на склад (отмена)</b> · 🚗 ${foundOrder.courierName || `id:${foundOrder.courierId}`}\n` +
+        stockChanges.map(c => `• ${c.name} × ${c.qty} (было: ${c.before} → стало: ${c.after})`).join('\n') +
+        stockLine,
+        { parse_mode: 'HTML' }
+      ).catch(() => {});
+    }
+  }
+
   // Отправляем в канал логов при смене статуса
   if (LOG_CHANNEL_ID && foundOrder && ['completed', 'cancelled'].includes(status)) {
     const o = foundOrder;
@@ -941,6 +1024,20 @@ app.delete('/api/admin/orders/:orderId', (req, res) => {
   }
   if (!deletedOrder) return res.status(404).json({ error: 'Order not found' });
   saveDB(db);
+
+  // Возвращаем товары на склад курьера при удалении
+  if (deletedOrder.courierId && deletedOrder.items?.length) {
+    const stockChanges = adjustCourierStock(deletedOrder.courierId, deletedOrder.items, +1);
+    if (stockChanges && LOG_CHANNEL_ID) {
+      const stockLine = getCourierStockLine(deletedOrder.courierId);
+      bot.sendMessage(LOG_CHANNEL_ID,
+        `↩️ <b>Возврат на склад (удаление)</b> · 🚗 ${deletedOrder.courierName || `id:${deletedOrder.courierId}`}\n` +
+        stockChanges.map(c => `• ${c.name} × ${c.qty} (было: ${c.before} → стало: ${c.after})`).join('\n') +
+        stockLine,
+        { parse_mode: 'HTML' }
+      ).catch(() => {});
+    }
+  }
 
   if (LOG_CHANNEL_ID && deletedOrder) {
     const o = deletedOrder;
