@@ -3,7 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import OrderModal from '../components/OrderModal';
 import styles from './Home.module.css';
 
-const MANAGER_TG = 'Manager_NRW_1';
+const MANAGER_TG = 'WAKAmanagerNRW';
 
 function openTg(username) {
   const url = `https://t.me/${username}`;

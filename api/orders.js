@@ -39,17 +39,24 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PATCH') {
-      // /api/orders?id=123&status=delivered
       const orderId = req.query.id;
-      const { status } = req.body || {};
-      if (!orderId || !status) return res.status(400).json({ error: 'id and status required' });
+      if (!orderId) return res.status(400).json({ error: 'id required' });
+      const { status, courierId, courierName, courierUsername } = req.body || {};
 
+      if (courierId !== undefined || courierName !== undefined) {
+        const r = await fetch(`${BOT_URL}/api/admin/orders/${orderId}/courier`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET || '' },
+          body: JSON.stringify({ courierId, courierName, courierUsername }),
+        });
+        if (!r.ok) return res.status(502).json({ error: 'Bot API error' });
+        return res.status(200).json({ ok: true });
+      }
+
+      if (!status) return res.status(400).json({ error: 'status required' });
       const r = await fetch(`${BOT_URL}/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-secret': ADMIN_SECRET || '',
-        },
+        headers: { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET || '' },
         body: JSON.stringify({ status }),
       });
       if (!r.ok) return res.status(502).json({ error: 'Bot API error' });

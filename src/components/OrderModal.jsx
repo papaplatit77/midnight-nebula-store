@@ -76,8 +76,6 @@ export default function OrderModal({ onClose }) {
     else if (!latinOnly.test(firstName.trim())) errs.firstName = 'Только латиница';
     if (!lastName.trim()) errs.lastName = 'Обязательное поле';
     else if (!latinOnly.test(lastName.trim())) errs.lastName = 'Только латиница';
-    if (!tgHandle.trim()) errs.tgHandle = 'Укажите Telegram username';
-    else if (!validTgHandle.test(tgHandle.trim())) errs.tgHandle = 'Только латиница, цифры и _ · минимум 5 символов';
     if (!street.trim()) errs.street = 'Укажите улицу и дом';
     if (!plz.trim()) errs.plz = 'Укажите PLZ';
     else if (!/^\d{5}$/.test(plz.trim())) errs.plz = '5 цифр, например 50667';
@@ -85,11 +83,11 @@ export default function OrderModal({ onClose }) {
     return errs;
   };
 
-  const mailFieldsFilled = firstName.trim() && lastName.trim() && tgHandle.trim()
+  const mailFieldsFilled = firstName.trim() && lastName.trim()
     && street.trim() && plz.trim() && deliveryCity.trim();
   const canNext = deliveryType && payment
     && (deliveryType === 'meeting'
-      ? (city && (!isReady ? tgHandle.trim() : true))
+      ? !!city
       : mailOption && mailFieldsFilled);
 
   const handleDeliveryType = (type) => {
@@ -159,7 +157,7 @@ export default function OrderModal({ onClose }) {
     if (items.length === 0) return;
 
     const text = buildOrderText();
-    const recipient = deliveryType === 'meeting' ? 'ManagerCobaltLabAroma' : 'Manager_NRW_1';
+    const recipient = deliveryType === 'meeting' ? 'ManagerCobaltLabAroma' : 'WAKAmanagerNRW';
     const url = `https://t.me/${recipient}?text=${encodeURIComponent(text)}`;
 
     clear();
@@ -184,14 +182,6 @@ export default function OrderModal({ onClose }) {
               <h2 className={styles.stepTitle}>Оформить заказ</h2>
               <p className={styles.stepSub}>Выберите способ получения и оплаты</p>
             </div>
-
-            {/* TG username */}
-            {username && (
-              <div className={styles.tgUser}>
-                <span className={styles.tgIcon}>✈️</span>
-                <span className={styles.tgName}>Telegram: <strong>{username}</strong></span>
-              </div>
-            )}
 
             {/* Способ доставки */}
             <div className={styles.fieldGroup}>
@@ -219,21 +209,6 @@ export default function OrderModal({ onClose }) {
                 </button>
               </div>
             </div>
-
-            {/* TG username — браузер, всегда видно */}
-            {!isReady && (
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Telegram username</label>
-                <input
-                  className={`${styles.textInput} ${fieldErrors.tgHandle ? styles.inputError : ''}`}
-                  type="text"
-                  placeholder="@username"
-                  value={tgHandle}
-                  onChange={e => { setTgHandle(e.target.value.replace(/^@+/, '')); setFieldErrors(p => ({...p, tgHandle: ''})); }}
-                />
-                {fieldErrors.tgHandle && <span className={styles.fieldErr}>{fieldErrors.tgHandle}</span>}
-              </div>
-            )}
 
             {/* Варианты почты — только если выбрана почта */}
             {deliveryType === 'mail' && (
@@ -398,10 +373,6 @@ export default function OrderModal({ onClose }) {
               disabled={!canNext}
               onClick={() => {
                 const errs = deliveryType === 'mail' ? validateMailFields() : {};
-                if (deliveryType === 'meeting' && !isReady) {
-                  if (!tgHandle.trim()) errs.tgHandle = 'Укажите Telegram username';
-                  else if (!validTgHandle.test(tgHandle.trim())) errs.tgHandle = 'Только латиница, цифры и _ · минимум 5 символов';
-                }
                 if (Object.keys(errs).length) { setFieldErrors(errs); return; }
                 setFieldErrors({});
                 setStep(2);
@@ -550,13 +521,7 @@ export default function OrderModal({ onClose }) {
 
                 {/* Инфо */}
                 <div className={styles.confirmInfo}>
-                  {username && (
-                    <div className={styles.confirmRow}>
-                      <span className={styles.confirmKey}>Telegram</span>
-                      <span className={styles.confirmVal}>{username}</span>
-                    </div>
-                  )}
-                  {deliveryType === 'meeting' && (
+                    {deliveryType === 'meeting' && (
                     <div className={styles.confirmRow}>
                       <span className={styles.confirmKey}>Город</span>
                       <span className={styles.confirmVal}>📍 {city}</span>
@@ -567,10 +532,6 @@ export default function OrderModal({ onClose }) {
                       <div className={styles.confirmRow}>
                         <span className={styles.confirmKey}>Получатель</span>
                         <span className={styles.confirmVal}>{firstName} {lastName}</span>
-                      </div>
-                      <div className={styles.confirmRow}>
-                        <span className={styles.confirmKey}>Telegram</span>
-                        <span className={styles.confirmVal}>@{tgHandle}</span>
                       </div>
                       <div className={styles.confirmRow}>
                         <span className={styles.confirmKey}>Город</span>

@@ -179,15 +179,28 @@ export function AdminProvider({ children }) {
   };
 
   const updateOrderStatus = async (id, status) => {
-    // Обновляем локально сразу
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
-    // Сохраняем в API
     const pw = adminPasswordRef.current;
     if (!pw) return;
     fetch(`/api/orders?id=${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
       body: JSON.stringify({ status }),
+    }).catch(() => {});
+  };
+
+  const updateOrderCourier = async (id, courier) => {
+    // courier = { courierId, courierName, courierUsername } или null для сброса
+    const data = courier
+      ? { courierId: courier.chatId, courierName: courier.name, courierUsername: courier.username || null }
+      : { courierId: null, courierName: null, courierUsername: null };
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, ...data } : o));
+    const pw = adminPasswordRef.current;
+    if (!pw) return;
+    fetch(`/api/orders?id=${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+      body: JSON.stringify(data),
     }).catch(() => {});
   };
 
@@ -281,7 +294,7 @@ export function AdminProvider({ children }) {
   return (
     <AdminContext.Provider value={{
       authed, login, logout,
-      orders, addOrder, updateOrderStatus, refreshOrders, lastRefresh,
+      orders, addOrder, updateOrderStatus, updateOrderCourier, refreshOrders, lastRefresh,
       products, addProduct, updateProduct, deleteProduct,
       couriers, addCourier, updateCourier, deleteCourier, getCourierForCity,
       customers, users, revenue,

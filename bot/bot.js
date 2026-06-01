@@ -427,11 +427,11 @@ bot.on('message', async (msg) => {
       `📦 <b>ОПТ</b>\n\n` +
       `Для оптовых заказов и обсуждения условий сотрудничества\n` +
       `пожалуйста, свяжитесь с нашим менеджером:\n\n` +
-      `@Manager_NRW_1`,
+      `@WAKAmanagerNRW`,
       {
         parse_mode: 'HTML',
         reply_markup: {
-          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/Manager_NRW_1' }]],
+          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/WAKAmanagerNRW' }]],
         },
       }
     );
@@ -456,11 +456,11 @@ bot.on('message', async (msg) => {
       `🛟 <b>Поддержка</b>\n\n` +
       `Если у вас есть вопросы или пожелания,\n` +
       `свяжитесь с нашим менеджером — мы всегда готовы помочь:\n\n` +
-      `@Manager_NRW_1`,
+      `@WAKAmanagerNRW`,
       {
         parse_mode: 'HTML',
         reply_markup: {
-          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/Manager_NRW_1' }]],
+          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/WAKAmanagerNRW' }]],
         },
       }
     );
@@ -853,7 +853,7 @@ app.post('/api/save-order', (req, res) => {
   if (tgUserId) {
     const recipient = courierUsername
       ? courierUsername.replace(/^@/, '')
-      : 'Manager_NRW_1';
+      : 'WAKAmanagerNRW';
 
     const msgText = order.deliveryType === 'meeting'
       ? `✅ <b>Заказ оформлен!</b>\n\n📍 ${order.city} · ${deliveryLabel}\n💰 ${paymentLabel}\n💎 <b>${order.total} €</b>\n\nНажмите кнопку ниже — откроется чат с курьером с готовым текстом заказа. Просто нажмите «Отправить».`
@@ -1003,6 +1003,30 @@ app.patch('/api/admin/orders/:orderId/status', (req, res) => {
     bot.sendMessage(LOG_CHANNEL_ID, logText, { parse_mode: 'HTML' }).catch(() => {});
   }
 
+  res.json({ ok: true });
+});
+
+// Сменить курьера у заказа
+app.patch('/api/admin/orders/:orderId/courier', (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (process.env.ADMIN_SECRET && secret !== process.env.ADMIN_SECRET)
+    return res.status(401).json({ error: 'Unauthorized' });
+  const { orderId } = req.params;
+  const { courierId, courierName, courierUsername } = req.body;
+  const db = loadDB();
+  let found = false;
+  for (const userId of Object.keys(db.orders || {})) {
+    const idx = db.orders[userId].findIndex(o => String(o.id) === String(orderId));
+    if (idx !== -1) {
+      db.orders[userId][idx].courierId      = courierId      || null;
+      db.orders[userId][idx].courierName    = courierName    || null;
+      db.orders[userId][idx].courierUsername = courierUsername || null;
+      found = true;
+      break;
+    }
+  }
+  if (!found) return res.status(404).json({ error: 'Order not found' });
+  saveDB(db);
   res.json({ ok: true });
 });
 

@@ -33,7 +33,7 @@ export default function Contacts() {
               Мы отвечаем быстро — по любым вопросам заказов, доставки и сотрудничества.
             </p>
             <button
-              onClick={() => openTg('Manager_NRW_1')}
+              onClick={() => openTg('WAKAmanagerNRW')}
               style={{
                 display: 'inline-block',
                 background: 'linear-gradient(135deg, #b300ff, #7c00d4)',
@@ -51,7 +51,7 @@ export default function Contacts() {
               onMouseOver={e => e.currentTarget.style.opacity = '0.85'}
               onMouseOut={e => e.currentTarget.style.opacity = '1'}
             >
-              @Manager_NRW_1
+              @WAKAmanagerNRW
             </button>
           </div>
         </div>

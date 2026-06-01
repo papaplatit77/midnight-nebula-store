@@ -7,7 +7,7 @@ const STATUS_COLOR = { new:'#d966ff', processing:'#60a5fa', shipped:'#a78bfa', d
 
 export default function OrderDetail() {
   const { id } = useParams();
-  const { orders, updateOrderStatus } = useAdmin();
+  const { orders, couriers, updateOrderStatus, updateOrderCourier } = useAdmin();
   const order = orders.find(o => String(o.id) === id);
 
   if (!order) return (
@@ -59,6 +59,29 @@ export default function OrderDetail() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Courier */}
+        <div className={styles.card}>
+          <h2>🚗 Курьер</h2>
+          <select
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: 14, cursor: 'pointer' }}
+            value={order.courierId || ''}
+            onChange={e => {
+              const chosen = couriers.find(c => String(c.chatId) === e.target.value) || null;
+              updateOrderCourier(order.id, chosen);
+            }}
+          >
+            <option value="">— Без курьера —</option>
+            {couriers.map(c => (
+              <option key={c.chatId} value={c.chatId}>{c.name}{c.username ? ` (@${c.username})` : ''}</option>
+            ))}
+          </select>
+          {order.courierName && (
+            <div style={{ marginTop: 8, fontSize: 13, opacity: 0.55 }}>
+              Текущий: {order.courierName}{order.courierUsername ? ` · @${order.courierUsername}` : ''}
+            </div>
+          )}
         </div>
 
         {/* Items */}
