@@ -20,7 +20,7 @@ const CITIES = [
 
 const CAT_EMOJI = { disposable:'💨', pods:'🔌', liquids:'💧', accessories:'⚙️', snus:'🍃' };
 
-export default function OrderModal({ onClose }) {
+export default function OrderModal({ onClose, forceOpen }) {
   const { add, items, total, count, clear } = useCart();
   const { products } = useAdmin();
   const { username, userId, isReady } = useTelegram();
@@ -47,13 +47,27 @@ export default function OrderModal({ onClose }) {
   const [sendError, setSendError] = useState('');
 
   useEffect(() => {
-    requestAnimationFrame(() => setVisible(true));
-    document.body.style.overflow = 'hidden';
     fetch('/api/couriers').then(r => r.json()).then(data => {
       if (Array.isArray(data)) setCouriersList(data);
     }).catch(() => {});
-    return () => { document.body.style.overflow = ''; };
   }, []);
+
+  useEffect(() => {
+    if (forceOpen) {
+      requestAnimationFrame(() => setVisible(true));
+      document.body.style.overflow = 'hidden';
+    } else {
+      setVisible(false);
+      document.body.style.overflow = '';
+      const t = setTimeout(() => {
+        setStep(1); setDeliveryType(''); setMailOption(''); setCity('');
+        setPayment(''); setFirstName(''); setLastName(''); setStreet('');
+        setPlz(''); setDeliveryCity(''); setSearch(''); setActiveCat('all');
+        setAddedMap({}); setSent(false); setSending(false); setSendError('');
+      }, 300);
+      return () => clearTimeout(t);
+    }
+  }, [forceOpen]);
 
   const courierForCity = city ? (couriersList.find(c => c.cities && c.cities.includes(city)) || null) : null;
 
@@ -169,6 +183,7 @@ export default function OrderModal({ onClose }) {
   return (
     <div
       className={`${styles.backdrop} ${visible ? styles.backdropVisible : ''}`}
+      style={!visible && !forceOpen ? { pointerEvents: 'none' } : undefined}
       onClick={e => e.target === e.currentTarget && handleClose()}
     >
       <div className={`${styles.sheet} ${visible ? styles.sheetVisible : ''} ${step === 2 ? styles.sheetFull : styles.sheetHalf}`}>

@@ -120,7 +120,7 @@ export default async function handler(req, res) {
   }
 
   // ── Сохранение заказа + уведомление курьеру + кнопка пользователю ──
-  const BOT_URL = process.env.BOT_API_URL || 'https://midnight-nebula-production.up.railway.app';
+  const BOT_URL = process.env.BOT_API_URL || 'https://midnight-nebula-store-production.up.railway.app';
   fetch(`${BOT_URL}/api/save-order`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

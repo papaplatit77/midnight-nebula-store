@@ -8,6 +8,14 @@
   pointer-events: none;
   z-index: 0;
 }
+.twinkleA, .twinkleB, .twinkleC {
+  will-change: opacity;
+}
+@media (max-width: 720px) {
+  .twinkleA { animation-duration: 5s; }
+  .twinkleB { animation-duration: 7s; }
+  .twinkleC { animation-duration: 4s; }
+}
 
 /* 1. Туманность */
 .nebula {

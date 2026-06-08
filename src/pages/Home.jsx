@@ -164,7 +164,7 @@ export default function Home() {
         </div>
       </section>
 
-      {orderOpen && <OrderModal onClose={() => setOrderOpen(false)} />}
+      <OrderModal onClose={() => setOrderOpen(false)} forceOpen={orderOpen} />
     </main>
   );
 }

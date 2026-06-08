@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (ADMIN_PASSWORD && password !== ADMIN_PASSWORD)
     return res.status(401).json({ error: 'Unauthorized' });
 
-  const BOT_URL = process.env.BOT_API_URL || 'https://midnight-nebula-production.up.railway.app';
+  const BOT_URL = process.env.BOT_API_URL || 'https://midnight-nebula-store-production.up.railway.app';
   const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
   if (req.method === 'DELETE') {

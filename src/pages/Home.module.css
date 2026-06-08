@@ -415,4 +415,5 @@
 @media (max-width: 720px) {
   .orderBtnInner { animation: none; }
   .orderBtnGlow { animation: none; }
+  .heroWord1, .heroWord2, .heroLine2 { animation: none; }
 }

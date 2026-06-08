@@ -198,6 +198,7 @@
   .burger { display: flex; }
   .mobileMenu { display: block; }
   .backdrop { display: block; }
+  .logoText { animation: none; }
 }
 @media (min-width: 721px) {
   .mobileMenu { display: none !important; }
