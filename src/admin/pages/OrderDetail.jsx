@@ -3,7 +3,7 @@ import { useAdmin } from '../context/AdminContext';
 import styles from './OrderDetail.module.css';
 
 const STATUS_OPTIONS = { new:'Новый', processing:'В обработке', shipped:'Отправлен', delivered:'Доставлен' };
-const STATUS_COLOR = { new:'#d966ff', processing:'#60a5fa', shipped:'#a78bfa', delivered:'#34d399' };
+const STATUS_COLOR = { new:'#44d4ff', processing:'#60a5fa', shipped:'#a78bfa', delivered:'#34d399' };
 
 export default function OrderDetail() {
   const { id } = useParams();

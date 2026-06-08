@@ -17,8 +17,8 @@ export default function Contacts() {
         <h1>Контакты</h1>
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '40px' }}>
           <div style={{
-            background: 'linear-gradient(135deg, rgba(179,0,255,0.12), rgba(124,0,212,0.08))',
-            border: '1px solid rgba(179,0,255,0.25)',
+            background: 'linear-gradient(135deg, rgba(0,180,255,0.12), rgba(0,80,200,0.08))',
+            border: '1px solid rgba(0,180,255,0.25)',
             borderRadius: '20px',
             padding: '48px 40px',
             textAlign: 'center',
@@ -33,10 +33,10 @@ export default function Contacts() {
               Мы отвечаем быстро — по любым вопросам заказов, доставки и сотрудничества.
             </p>
             <button
-              onClick={() => openTg('WAKAmanagerNRW')}
+              onClick={() => openTg('midnight_nebula_manager')}
               style={{
                 display: 'inline-block',
-                background: 'linear-gradient(135deg, #b300ff, #7c00d4)',
+                background: 'linear-gradient(135deg, #00aaff, #0044cc)',
                 color: '#fff',
                 fontWeight: 700,
                 fontSize: '16px',
@@ -45,13 +45,13 @@ export default function Contacts() {
                 borderRadius: '12px',
                 border: 'none',
                 cursor: 'pointer',
-                boxShadow: '0 0 24px rgba(179,0,255,0.4)',
+                boxShadow: '0 0 24px rgba(0,180,255,0.4)',
                 transition: 'opacity 0.2s',
               }}
               onMouseOver={e => e.currentTarget.style.opacity = '0.85'}
               onMouseOut={e => e.currentTarget.style.opacity = '1'}
             >
-              @WAKAmanagerNRW
+              @midnight_nebula_manager
             </button>
           </div>
         </div>

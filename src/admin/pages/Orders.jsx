@@ -11,7 +11,7 @@ const STATUSES = [
   { key: 'delivered', label: 'Доставлены' },
 ];
 
-const STATUS_COLOR = { new: '#d966ff', processing: '#60a5fa', shipped: '#a78bfa', delivered: '#34d399' };
+const STATUS_COLOR = { new: '#44d4ff', processing: '#60a5fa', shipped: '#a78bfa', delivered: '#34d399' };
 const STATUS_LABEL = { new: 'Новый', processing: 'В обработке', shipped: 'Отправлен', delivered: 'Доставлен' };
 
 export default function Orders() {

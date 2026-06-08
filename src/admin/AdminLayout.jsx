@@ -26,7 +26,7 @@ export default function AdminLayout() {
         <div className={styles.brand}>
           <DragonLogo size={32} />
           <div>
-            <div className={styles.brandName}>WAKASHOP</div>
+            <div className={styles.brandName}>MIDNIGHT NEBULA</div>
             <div className={styles.brandSub}>Admin</div>
           </div>
         </div>

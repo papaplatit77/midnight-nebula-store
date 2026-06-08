@@ -29,7 +29,7 @@ export default function AdminLogin() {
         <div className={styles.logo}>
           <DragonLogo size={48} />
           <div>
-            <div className={styles.logoName}>WAKASHOP</div>
+            <div className={styles.logoName}>MIDNIGHT NEBULA</div>
             <div className={styles.logoSub}>Admin Panel</div>
           </div>
         </div>

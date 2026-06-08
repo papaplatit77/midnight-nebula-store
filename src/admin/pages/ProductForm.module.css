@@ -16,9 +16,9 @@
   transition: border-color 0.2s, background 0.2s;
   background: rgba(255,255,255,0.03);
 }
-.dropZone:hover { border-color: rgba(179,0,255,0.4); background: rgba(179,0,255,0.04); }
-.dropZoneDrag { border-color: #b300ff !important; background: rgba(179,0,255,0.08) !important; box-shadow: 0 0 20px rgba(179,0,255,0.2); }
-.dropZoneHasImg { border-style: solid; border-color: rgba(179,0,255,0.25); }
+.dropZone:hover { border-color: rgba(0,180,255,0.4); background: rgba(0,180,255,0.04); }
+.dropZoneDrag { border-color: #00aaff !important; background: rgba(0,180,255,0.08) !important; box-shadow: 0 0 20px rgba(0,180,255,0.2); }
+.dropZoneHasImg { border-style: solid; border-color: rgba(0,180,255,0.25); }
 
 .dropPlaceholder { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .dropIcon { font-size: 40px; }
@@ -39,7 +39,7 @@
 .spinner {
   width: 28px; height: 28px;
   border: 2px solid rgba(255,255,255,0.1);
-  border-top-color: #b300ff;
+  border-top-color: #00aaff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -63,7 +63,7 @@
 
 .header { display: flex; align-items: center; gap: 16px; }
 .backBtn { font-size: 14px; color: rgba(255,255,255,0.4); background: transparent; transition: color 0.2s; }
-.backBtn:hover { color: #d966ff; }
+.backBtn:hover { color: #44d4ff; }
 .header h1 { font-size: 24px; font-weight: 700; color: #f0f0f0; }
 
 .form { display: flex; flex-direction: column; gap: 16px; }
@@ -85,7 +85,7 @@
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09);
   border-radius: 9px; color: #f0f0f0; font-size: 14px; transition: border-color 0.2s;
 }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: rgba(179,0,255,0.45); }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: rgba(0,180,255,0.45); }
 .field input::placeholder, .field textarea::placeholder { color: rgba(255,255,255,0.18); }
 .field select option { background: #0d0115; }
 .field textarea { resize: vertical; }
@@ -99,10 +99,10 @@
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
   border-radius: 7px; font-size: 13px; color: rgba(255,255,255,0.45); transition: all 0.2s;
 }
-.tagBtn:hover { border-color: rgba(179,0,255,0.3); color: rgba(255,255,255,0.7); }
+.tagBtn:hover { border-color: rgba(0,180,255,0.3); color: rgba(255,255,255,0.7); }
 .tagActive {
-  background: rgba(179,0,255,0.15) !important;
-  border-color: rgba(179,0,255,0.4) !important;
+  background: rgba(0,180,255,0.15) !important;
+  border-color: rgba(0,180,255,0.4) !important;
   color: #f0f0f0 !important;
 }
 
@@ -138,9 +138,9 @@ input[type=checkbox]:checked + .toggleTrack .toggleThumb { left: 23px; }
   display: flex; align-items: center; justify-content: center; font-size: 32px;
 }
 .previewInfo { flex: 1; }
-.previewCat { font-size: 11px; color: #d966ff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.previewCat { font-size: 11px; color: #44d4ff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
 .previewName { font-size: 15px; font-weight: 600; color: #f0f0f0; margin-bottom: 6px; }
-.previewPrice { font-size: 16px; font-weight: 700; color: #d966ff; margin-bottom: 6px; }
+.previewPrice { font-size: 16px; font-weight: 700; color: #44d4ff; margin-bottom: 6px; }
 .previewPrice span { font-size: 13px; color: rgba(255,255,255,0.25); text-decoration: line-through; margin-left: 8px; }
 .previewTags { display: flex; gap: 6px; flex-wrap: wrap; }
 .previewTags span { font-size: 11px; padding: 2px 7px; background: rgba(255,255,255,0.08); border-radius: 4px; color: rgba(255,255,255,0.4); }
@@ -156,9 +156,9 @@ input[type=checkbox]:checked + .toggleTrack .toggleThumb { left: 23px; }
 .cancelBtn:hover { background: rgba(255,255,255,0.09); }
 .saveBtn {
   padding: 12px 28px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  background: linear-gradient(135deg, #00aaff, #0044cc);
   color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600;
-  box-shadow: 0 4px 16px rgba(179,0,255,0.45); transition: opacity 0.2s;
+  box-shadow: 0 4px 16px rgba(0,180,255,0.45); transition: opacity 0.2s;
 }
 .saveBtn:hover { opacity: 0.85; }
 .savedBtn { background: linear-gradient(135deg, #059669, #34d399) !important; box-shadow: 0 4px 16px rgba(52,211,153,0.35) !important; }

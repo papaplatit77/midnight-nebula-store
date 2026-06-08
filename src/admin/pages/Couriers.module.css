@@ -2,7 +2,7 @@
 
 /* ── Экспорт JSON ────────────────────────────────────────────── */
 .exportBox {
-  background: rgba(179,0,255,0.06); border: 1px solid rgba(179,0,255,0.2);
+  background: rgba(0,180,255,0.06); border: 1px solid rgba(0,180,255,0.2);
   border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
 }
 .exportTitle {
@@ -12,36 +12,36 @@
 .exportSub { color: rgba(255,255,255,0.35); font-weight: 400; }
 .exportRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .exportJson {
-  flex: 1; min-width: 0; font-size: 11px; color: #d966ff;
+  flex: 1; min-width: 0; font-size: 11px; color: #44d4ff;
   background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
   font-family: monospace;
 }
 .copyBtn {
   padding: 8px 16px; white-space: nowrap;
-  background: rgba(179,0,255,0.15); border: 1px solid rgba(179,0,255,0.3);
-  color: #d966ff; border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: rgba(0,180,255,0.15); border: 1px solid rgba(0,180,255,0.3);
+  color: #44d4ff; border-radius: 8px; font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.2s;
 }
-.copyBtn:hover { background: rgba(179,0,255,0.25); }
+.copyBtn:hover { background: rgba(0,180,255,0.25); }
 
 .header { display: flex; align-items: center; justify-content: space-between; }
 .headerLeft { display: flex; align-items: center; gap: 12px; }
 .headerLeft h1 { font-size: 26px; font-weight: 700; color: #f0f0f0; }
-.count { background: rgba(179,0,255,0.15); color: #d966ff; border: 1px solid rgba(179,0,255,0.25); font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
+.count { background: rgba(0,180,255,0.15); color: #44d4ff; border: 1px solid rgba(0,180,255,0.25); font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
 
 .addBtn {
   padding: 10px 20px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  background: linear-gradient(135deg, #00aaff, #0044cc);
   color: #fff; border-radius: 10px; font-size: 14px; font-weight: 600;
-  box-shadow: 0 4px 16px rgba(179,0,255,0.45); transition: opacity 0.2s; border: none; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,180,255,0.45); transition: opacity 0.2s; border: none; cursor: pointer;
 }
 .addBtn:hover { opacity: 0.85; }
 
 /* ── Форма ──────────────────────────────────────────────────── */
 .formCard {
   background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(179,0,255,0.2);
+  border: 1px solid rgba(0,180,255,0.2);
   border-radius: 16px; padding: 24px;
   display: flex; flex-direction: column; gap: 20px;
 }
@@ -57,7 +57,7 @@
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 10px; color: #f0f0f0; font-size: 14px; transition: border-color 0.2s;
 }
-.field input:focus { border-color: rgba(179,0,255,0.5); outline: none; }
+.field input:focus { border-color: rgba(0,180,255,0.5); outline: none; }
 .field input::placeholder { color: rgba(255,255,255,0.2); }
 .hint { font-size: 11px; color: rgba(255,255,255,0.3); }
 
@@ -68,7 +68,7 @@
   text-transform: uppercase; letter-spacing: 0.5px;
   display: flex; align-items: center; gap: 8px;
 }
-.citiesSel { background: rgba(179,0,255,0.2); color: #d966ff; border-radius: 10px; padding: 2px 8px; font-size: 12px; text-transform: none; }
+.citiesSel { background: rgba(0,180,255,0.2); color: #44d4ff; border-radius: 10px; padding: 2px 8px; font-size: 12px; text-transform: none; }
 
 .citiesGrid { display: flex; flex-wrap: wrap; gap: 8px; }
 .cityBtn {
@@ -77,9 +77,9 @@
   border-radius: 8px; font-size: 13px; color: rgba(255,255,255,0.55);
   cursor: pointer; transition: all 0.15s; position: relative;
 }
-.cityBtn:hover:not(.cityTaken) { border-color: rgba(179,0,255,0.4); color: #f0f0f0; }
+.cityBtn:hover:not(.cityTaken) { border-color: rgba(0,180,255,0.4); color: #f0f0f0; }
 .citySelected {
-  background: rgba(179,0,255,0.18) !important; border-color: rgba(179,0,255,0.5) !important;
+  background: rgba(0,180,255,0.18) !important; border-color: rgba(0,180,255,0.5) !important;
   color: #e8b4ff !important; font-weight: 600;
 }
 .cityTaken { opacity: 0.35; cursor: not-allowed; }
@@ -88,7 +88,7 @@
 .formActions { display: flex; gap: 10px; }
 .saveBtn {
   padding: 10px 24px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  background: linear-gradient(135deg, #00aaff, #0044cc);
   color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
   cursor: pointer; transition: opacity 0.2s;
 }
@@ -111,22 +111,22 @@
   display: flex; flex-direction: column; gap: 12px;
   transition: border-color 0.2s;
 }
-.card:hover { border-color: rgba(179,0,255,0.25); }
+.card:hover { border-color: rgba(0,180,255,0.25); }
 
 .cardTop { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .cardInfo { display: flex; flex-direction: column; gap: 4px; }
 .cardName { font-size: 16px; font-weight: 700; color: #f0f0f0; }
 .cardId { font-size: 12px; color: rgba(255,255,255,0.35); }
-.cardId code { color: #d966ff; background: rgba(179,0,255,0.1); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+.cardId code { color: #44d4ff; background: rgba(0,180,255,0.1); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
 
 .cardActions { display: flex; gap: 8px; }
 .editBtn {
   padding: 7px 14px;
-  background: rgba(179,0,255,0.12); border: 1px solid rgba(179,0,255,0.25);
-  color: #d966ff; border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: rgba(0,180,255,0.12); border: 1px solid rgba(0,180,255,0.25);
+  color: #44d4ff; border-radius: 8px; font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.2s;
 }
-.editBtn:hover { background: rgba(179,0,255,0.2); }
+.editBtn:hover { background: rgba(0,180,255,0.2); }
 .deleteBtn {
   padding: 7px 14px;
   background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.2);
@@ -138,8 +138,8 @@
 .cardCities { display: flex; flex-wrap: wrap; gap: 6px; }
 .cityTag {
   padding: 4px 10px;
-  background: rgba(179,0,255,0.1); border: 1px solid rgba(179,0,255,0.2);
-  border-radius: 6px; font-size: 12px; color: #d966ff; font-weight: 500;
+  background: rgba(0,180,255,0.1); border: 1px solid rgba(0,180,255,0.2);
+  border-radius: 6px; font-size: 12px; color: #44d4ff; font-weight: 500;
 }
 .noCities { font-size: 13px; color: rgba(255,255,255,0.25); font-style: italic; }
 
@@ -158,7 +158,7 @@
   display: flex; align-items: center; justify-content: center; z-index: 100;
 }
 .dialog {
-  background: #1a0a2e; border: 1px solid rgba(179,0,255,0.3);
+  background: #1a0a2e; border: 1px solid rgba(0,180,255,0.3);
   border-radius: 16px; padding: 28px 32px;
   display: flex; flex-direction: column; gap: 20px; text-align: center;
 }
@@ -177,11 +177,11 @@
   border-radius: 8px; font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.2s;
 }
-.tabBtn:hover { border-color: rgba(179,0,255,0.4); color: rgba(255,255,255,0.8); }
+.tabBtn:hover { border-color: rgba(0,180,255,0.4); color: rgba(255,255,255,0.8); }
 .tabActive {
-  background: rgba(179,0,255,0.15);
-  border-color: rgba(179,0,255,0.5);
-  color: #d966ff;
+  background: rgba(0,180,255,0.15);
+  border-color: rgba(0,180,255,0.5);
+  color: #44d4ff;
 }
 
 /* ── Сетка товаров (склад курьера) ──────────────────────────── */

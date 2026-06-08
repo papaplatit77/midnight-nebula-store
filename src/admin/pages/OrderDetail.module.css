@@ -3,11 +3,11 @@
 .notFound { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.25); }
 .notFound span { font-size: 48px; display: block; margin-bottom: 12px; }
 .notFound p { margin-bottom: 16px; }
-.back { color: #d966ff; font-size: 14px; }
+.back { color: #44d4ff; font-size: 14px; }
 
 .header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .backBtn { font-size: 14px; color: rgba(255,255,255,0.4); transition: color 0.2s; }
-.backBtn:hover { color: #d966ff; }
+.backBtn:hover { color: #44d4ff; }
 .header h1 { font-size: 24px; font-weight: 700; color: #f0f0f0; }
 .date { font-size: 13px; color: rgba(255,255,255,0.3); margin-left: auto; }
 
@@ -64,7 +64,7 @@
 .itemName { flex: 1; font-size: 14px; color: #f0f0f0; }
 .itemQty { font-size: 13px; color: rgba(255,255,255,0.35); min-width: 30px; }
 .itemPrice { font-size: 13px; color: rgba(255,255,255,0.4); min-width: 70px; text-align: right; }
-.itemTotal { font-size: 14px; font-weight: 600; color: #d966ff; min-width: 80px; text-align: right; }
+.itemTotal { font-size: 14px; font-weight: 600; color: #44d4ff; min-width: 80px; text-align: right; }
 
 .orderTotal {
   display: flex; justify-content: space-between;
@@ -75,6 +75,6 @@
 }
 .orderTotal span:first-child { color: rgba(255,255,255,0.5); }
 .orderTotal span:last-child {
-  background: linear-gradient(135deg, #b300ff, #d966ff);
+  background: linear-gradient(135deg, #00aaff, #44d4ff);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }

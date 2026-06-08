@@ -16,10 +16,13 @@ export default function Cart() {
   if (items.length === 0) {
     return (
       <div className={styles.empty}>
-        <span>🛒</span>
-        <h2>Корзина пуста</h2>
-        <p>Добавьте товары из каталога</p>
-        <Link to="/" className={styles.shopBtn}>Перейти в каталог</Link>
+        <div className={styles.emptyOrbit}>
+          <div className={styles.emptyPlanet} />
+          <div className={styles.emptyRing} />
+        </div>
+        <h2>Здесь пока пусто</h2>
+        <p>Загляни в каталог — найдёшь что-нибудь интересное</p>
+        <Link to="/" className={styles.shopBtn}>Открыть каталог →</Link>
       </div>
     );
   }

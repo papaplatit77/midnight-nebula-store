@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { AdminProvider } from './admin/context/AdminContext';
 import { useAdmin } from './admin/context/AdminContext';
-import SplashScreen from './components/SplashScreen';
-import AgeGate from './components/AgeGate';
+import Stars from './components/Stars';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -29,27 +27,18 @@ function AdminGuard({ children }) {
 }
 
 function ShopApp() {
-  const [ageVerified, setAgeVerified] = useState(
-    () => sessionStorage.getItem('age_ok') === '1'
-  );
-
-  const handleAgeConfirm = () => {
-    sessionStorage.setItem('age_ok', '1');
-    setAgeVerified(true);
-  };
-
   return (
     <>
-      {!ageVerified && <AgeGate onConfirm={handleAgeConfirm} />}
+      <Stars />
       <Header />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/catalog" element={<Catalog />} />
+        <Route path="/"            element={<Home />} />
+        <Route path="/catalog"     element={<Catalog />} />
         <Route path="/product/:id" element={<ProductPage />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Navigate to="/" replace />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contacts" element={<Contacts />} />
+        <Route path="/cart"        element={<Cart />} />
+        <Route path="/checkout"    element={<Navigate to="/" replace />} />
+        <Route path="/about"       element={<About />} />
+        <Route path="/contacts"    element={<Contacts />} />
       </Routes>
       <Footer />
     </>
@@ -57,33 +46,26 @@ function ShopApp() {
 }
 
 export default function App() {
-  const [splashDone, setSplashDone] = useState(false);
-
   return (
-    <>
-      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
-      <AdminProvider>
-        <CartProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Admin */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminGuard><AdminLayout /></AdminGuard>}>
-                <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="orders" element={<Orders />} />
-                <Route path="orders/:id" element={<OrderDetail />} />
-                <Route path="products" element={<Products />} />
-                <Route path="products/:id" element={<ProductForm />} />
-                <Route path="customers" element={<Customers />} />
-                <Route path="couriers" element={<Couriers />} />
-              </Route>
-              {/* Shop */}
-              <Route path="/*" element={<ShopApp />} />
-            </Routes>
-          </BrowserRouter>
-        </CartProvider>
-      </AdminProvider>
-    </>
+    <AdminProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminGuard><AdminLayout /></AdminGuard>}>
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard"    element={<Dashboard />} />
+              <Route path="orders"       element={<Orders />} />
+              <Route path="orders/:id"   element={<OrderDetail />} />
+              <Route path="products"     element={<Products />} />
+              <Route path="products/:id" element={<ProductForm />} />
+              <Route path="customers"    element={<Customers />} />
+              <Route path="couriers"     element={<Couriers />} />
+            </Route>
+            <Route path="/*" element={<ShopApp />} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
+    </AdminProvider>
   );
 }

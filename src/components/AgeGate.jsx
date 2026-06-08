@@ -29,7 +29,7 @@ export default function AgeGate({ onConfirm }) {
   return (
     <div className={styles.overlay}>
       <div className={styles.box}>
-        <div className={styles.logo}>✦ WAKASHOP</div>
+        <div className={styles.logo}>◈ MIDNIGHT NEBULA</div>
         <div className={styles.icon}>🔞</div>
         <h2>Подтверждение возраста</h2>
         <p>Данный сайт содержит товары, предназначенные только для совершеннолетних (18+).</p>

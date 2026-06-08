@@ -1,12 +1,41 @@
-.empty { text-align: center; padding: 80px 20px; }
-.empty span { font-size: 56px; display: block; margin-bottom: 16px; }
-.empty h2 { font-size: 22px; font-weight: 600; color: #f0f0f0; margin-bottom: 8px; }
-.empty p { color: rgba(255,255,255,0.38); margin-bottom: 24px; font-size: 14px; }
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.emptyOrbit {
+  position: relative;
+  width: 100px; height: 100px;
+  margin-bottom: 28px;
+}
+.emptyPlanet {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0044cc, #8844ff);
+  box-shadow: 0 0 24px rgba(136,68,255,0.6);
+}
+.emptyRing {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotateX(65deg);
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  border: 2px solid rgba(68,212,255,0.5);
+  box-shadow: 0 0 12px rgba(68,212,255,0.3);
+}
+.empty h2 { font-size: 22px; font-weight: 700; color: #f0f0f0; margin-bottom: 10px; }
+.empty p { color: rgba(255,255,255,0.35); margin-bottom: 28px; font-size: 14px; line-height: 1.6; }
 .shopBtn {
-  display: inline-block; padding: 12px 28px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
-  color: #fff; border-radius: 12px; font-weight: 600;
-  box-shadow: 0 4px 20px rgba(179,0,255,0.45); transition: opacity 0.2s;
+  display: inline-block; padding: 13px 32px;
+  background: linear-gradient(135deg, #44d4ff, #6622ee);
+  color: #fff; border-radius: 12px; font-weight: 700; font-size: 14px;
+  box-shadow: 0 4px 20px rgba(0,180,255,0.45); transition: opacity 0.2s;
 }
 .shopBtn:hover { opacity: 0.85; }
 
@@ -25,7 +54,7 @@
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 14px; padding: 12px; transition: border-color 0.2s;
 }
-.item:hover { border-color: rgba(179,0,255,0.25); }
+.item:hover { border-color: rgba(0,180,255,0.25); }
 
 .itemImage {
   width: 48px; height: 48px;
@@ -39,7 +68,7 @@
   margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   transition: color 0.2s;
 }
-.itemName:hover { color: #d966ff; }
+.itemName:hover { color: #44d4ff; }
 .itemPrice { font-size: 12px; color: rgba(255,255,255,0.32); }
 
 .qtyControl {
@@ -56,7 +85,7 @@
 
 .itemTotal {
   font-size: 14px; font-weight: 700;
-  background: linear-gradient(135deg, #b300ff, #d966ff);
+  background: linear-gradient(135deg, #00aaff, #44d4ff);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   flex-shrink: 0; min-width: 60px; text-align: right;
 }
@@ -66,9 +95,9 @@
 
 .summary {
   background: rgba(255,255,255,0.05); backdrop-filter: blur(16px);
-  border: 1px solid rgba(179,0,255,0.15); border-radius: 16px; padding: 20px;
+  border: 1px solid rgba(0,180,255,0.15); border-radius: 16px; padding: 20px;
   display: flex; flex-direction: column; gap: 12px;
-  box-shadow: 0 8px 32px rgba(179,0,255,0.08);
+  box-shadow: 0 8px 32px rgba(0,180,255,0.08);
 }
 .summary h2 { font-size: 18px; font-weight: 600; color: #f0f0f0; }
 .summaryRow { display: flex; justify-content: space-between; font-size: 14px; color: rgba(255,255,255,0.42); }
@@ -77,12 +106,12 @@
 
 .checkoutBtn {
   padding: 14px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  background: linear-gradient(135deg, #00aaff, #0044cc);
   color: #fff; border-radius: 12px; font-size: 15px; font-weight: 600;
   text-align: center; transition: opacity 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 20px rgba(179,0,255,0.45); margin-top: 4px;
+  box-shadow: 0 4px 20px rgba(0,180,255,0.45); margin-top: 4px;
 }
-.checkoutBtn:hover { opacity: 0.85; box-shadow: 0 6px 28px rgba(179,0,255,0.65); }
+.checkoutBtn:hover { opacity: 0.85; box-shadow: 0 6px 28px rgba(0,180,255,0.65); }
 
 .continueLink { display: block; text-align: center; font-size: 13px; color: rgba(255,255,255,0.32); transition: color 0.2s; }
-.continueLink:hover { color: #d966ff; }
+.continueLink:hover { color: #44d4ff; }

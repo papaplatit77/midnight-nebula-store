@@ -1,7 +1,7 @@
 {
-  "name": "wakashop-bot",
+  "name": "midnight-nebula-bot",
   "version": "1.0.0",
-  "description": "Wakashop Telegram bot + order API",
+  "description": "Midnight Nebula Telegram bot + order API",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",

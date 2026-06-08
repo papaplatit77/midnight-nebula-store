@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import styles from './Dashboard.module.css';
 
 const STATUS_LABEL = { new: 'Новый', processing: 'В обработке', shipped: 'Отправлен', delivered: 'Доставлен' };
-const STATUS_COLOR = { new: '#d966ff', processing: '#60a5fa', shipped: '#a78bfa', delivered: '#34d399' };
+const STATUS_COLOR = { new: '#44d4ff', processing: '#60a5fa', shipped: '#a78bfa', delivered: '#34d399' };
 
 export default function Dashboard() {
   const { orders, products, customers, revenue } = useAdmin();
 
   const stats = [
-    { label: 'Выручка', value: `${revenue.toFixed(2)} €`, icon: '💰', color: '#d966ff' },
-    { label: 'Заказов', value: orders.length, icon: '📦', color: '#b300ff' },
+    { label: 'Выручка', value: `${revenue.toFixed(2)} €`, icon: '💰', color: '#44d4ff' },
+    { label: 'Заказов', value: orders.length, icon: '📦', color: '#00aaff' },
     { label: 'Товаров', value: products.length, icon: '🛍️', color: '#60a5fa' },
     { label: 'Клиентов', value: customers.length, icon: '👥', color: '#34d399' },
   ];
@@ -26,7 +26,7 @@ export default function Dashboard() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1>Дашборд</h1>
-        <p>Обзор магазина WAKASHOP</p>
+        <p>Обзор магазина MIDNIGHT NEBULA</p>
       </div>
 
       {/* Stats */}

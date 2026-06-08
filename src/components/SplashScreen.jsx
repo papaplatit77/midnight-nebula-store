@@ -37,12 +37,12 @@ export default function SplashScreen({ onDone }) {
       <div className={styles.content}>
         {/* Лого */}
         <div className={styles.logoWrap}>
-          <div className={styles.logoW}>W</div>
-          <div className={styles.logoText}>WAKASHOP</div>
+          <div className={styles.logoW}>◈</div>
+          <div className={styles.logoText}>MIDNIGHT NEBULA</div>
         </div>
 
         {/* Подзаголовок */}
-        <p className={styles.subtitle}>NRW · Vape Store</p>
+        <p className={styles.subtitle}>NRW · Vape Store · Deutschland</p>
 
         {/* Прогресс-бар */}
         <div className={styles.barWrap}>

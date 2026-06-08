@@ -1,7 +1,8 @@
 .header {
-  background: rgba(6, 1, 8, 0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(179, 0, 255, 0.15);
+  background: rgba(7, 1, 15, 0.80);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(140, 0, 255, 0.15);
   position: sticky;
   top: 0;
   z-index: 200;
@@ -10,171 +11,144 @@
 .inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
-  height: 64px;
+  padding: 0 24px;
+  height: 60px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: space-between;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
+  text-decoration: none;
 }
 
-.logoText {
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: 3px;
-  background: linear-gradient(135deg, #b300ff 0%, #7c00d4 50%, #d966ff 100%);
+.logoSymbol {
+  font-size: 20px;
+  background: linear-gradient(135deg, #44d4ff, #8844ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(140, 0, 255, 0.6));
 }
 
-/* ── Search ── */
-.search {
-  flex: 1;
-  max-width: 400px;
-  display: flex;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  transition: border-color 0.2s, background 0.2s;
-  backdrop-filter: blur(12px);
+.logoText {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #44d4ff 0%, #8844ff 55%, #cc44ff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: logoShine 5s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(136,68,255,0.4));
 }
-.search:focus-within {
-  border-color: rgba(179, 0, 255, 0.5);
-  background: rgba(255, 255, 255, 0.07);
+@keyframes logoShine {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
-.search input {
-  flex: 1;
-  padding: 10px 14px;
-  background: transparent;
-  border: none;
-  color: #f0f0f0;
-  font-size: 14px;
-}
-.search input::placeholder { color: rgba(255,255,255,0.25); }
-.search button {
-  padding: 0 14px;
-  background: transparent;
-  color: rgba(255,255,255,0.35);
-  display: flex;
-  align-items: center;
-  transition: color 0.2s;
-}
-.search button:hover { color: #d966ff; }
+.logoSub { /* не используется */ }
 
-/* ── Desktop nav ── */
 .nav {
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
 }
+
 .navLink {
-  padding: 8px 12px;
+  padding: 8px 16px;
   font-size: 14px;
-  color: rgba(255,255,255,0.5);
-  border-radius: 8px;
-  transition: color 0.2s, background 0.2s;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  position: relative;
+  transition: color 0.2s;
 }
-.navLink:hover {
-  color: #f0f0f0;
-  background: rgba(179, 0, 255, 0.1);
+.navLink::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, #44d4ff, #8844ff);
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+.navLink:hover { color: #fff; }
+.navLink:hover::after { transform: scaleX(1); }
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .cartBtn {
   position: relative;
-  padding: 8px 12px;
-  color: rgba(255,255,255,0.5);
+  padding: 8px 10px;
+  color: rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   border-radius: 8px;
-  transition: color 0.2s, background 0.2s;
+  transition: color 0.2s;
 }
-.cartBtn:hover {
-  color: #d966ff;
-  background: rgba(179, 0, 255, 0.1);
-}
+.cartBtn:hover { color: #44d4ff; }
 
 .badge {
   position: absolute;
   top: 2px;
   right: 2px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  background: linear-gradient(135deg, #44d4ff, #8844ff);
   color: #fff;
   font-size: 10px;
   font-weight: 700;
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 8px rgba(179, 0, 255, 0.7);
+  box-shadow: 0 0 8px rgba(140, 0, 255, 0.7);
 }
 
-/* ── Mobile right side ── */
-.mobileRight {
-  display: none;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-}
-
-.cartBtnMobile {
-  position: relative;
-  padding: 8px;
-  color: rgba(255,255,255,0.5);
-  display: flex;
-  align-items: center;
-  border-radius: 8px;
-  transition: color 0.2s;
-}
-.cartBtnMobile:hover { color: #d966ff; }
-
-/* ── Burger ── */
 .burger {
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   padding: 8px;
   background: transparent;
   border-radius: 8px;
   transition: background 0.2s;
 }
-.burger:hover { background: rgba(179,0,255,0.1); }
+.burger:hover { background: rgba(140, 0, 255, 0.1); }
 .burger span {
   display: block;
   width: 100%;
   height: 2px;
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.55);
   border-radius: 2px;
-  transition: transform 0.25s, opacity 0.25s, background 0.2s;
+  transition: transform 0.25s, opacity 0.25s;
   transform-origin: center;
 }
-.burgerOpen span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: #d966ff; }
+.burgerOpen span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: #44d4ff; }
 .burgerOpen span:nth-child(2) { opacity: 0; }
-.burgerOpen span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: #d966ff; }
+.burgerOpen span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: #44d4ff; }
 
-/* ── Mobile menu ── */
 .mobileMenu {
   position: fixed;
-  top: 64px;
+  top: 60px;
   left: 0; right: 0;
-  background: rgba(6, 1, 8, 0.98);
+  background: rgba(7, 1, 15, 0.97);
   backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(179,0,255,0.15);
+  border-bottom: 1px solid rgba(140, 0, 255, 0.15);
   z-index: 199;
-  padding: 20px;
+  padding: 16px 20px 20px;
   transform: translateY(-8px);
   opacity: 0;
   pointer-events: none;
@@ -187,86 +161,45 @@
   pointer-events: all;
 }
 
-.mobileSearch {
-  display: flex;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 16px;
-  transition: border-color 0.2s;
-}
-.mobileSearch:focus-within { border-color: rgba(179,0,255,0.4); }
-.mobileSearch input {
-  flex: 1;
-  padding: 12px 16px;
-  background: transparent;
-  border: none;
-  color: #f0f0f0;
-  font-size: 15px;
-}
-.mobileSearch input::placeholder { color: rgba(255,255,255,0.25); }
-.mobileSearch button {
-  padding: 0 16px;
-  background: transparent;
-  color: rgba(255,255,255,0.35);
-  display: flex;
-  align-items: center;
-  transition: color 0.2s;
-}
-.mobileSearch button:hover { color: #d966ff; }
-
-.mobileNav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.mobileNav { display: flex; flex-direction: column; gap: 2px; }
 .mobileNavLink {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 12px;
-  font-size: 16px;
+  padding: 13px 12px;
+  font-size: 15px;
   font-weight: 500;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.55);
   border-radius: 10px;
   transition: color 0.2s, background 0.2s;
 }
-.mobileNavLink:hover {
-  color: #f0f0f0;
-  background: rgba(179,0,255,0.08);
-}
+.mobileNavLink:hover { color: #fff; background: rgba(140, 0, 255, 0.08); }
 
 .mobileCount {
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  background: linear-gradient(135deg, #44d4ff, #8844ff);
   color: #fff;
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 10px;
-  box-shadow: 0 0 8px rgba(179,0,255,0.5);
 }
 
 .backdrop {
   position: fixed;
   inset: 0;
-  top: 64px;
-  background: rgba(0,0,0,0.5);
+  top: 60px;
+  background: rgba(0, 0, 0, 0.55);
   z-index: 198;
   display: none;
 }
 
-/* ── Responsive breakpoints ── */
 @media (max-width: 720px) {
   .nav { display: none; }
-  .search { display: none; }
-  .mobileRight { display: flex; }
+  .burger { display: flex; }
   .mobileMenu { display: block; }
   .backdrop { display: block; }
 }
-
 @media (min-width: 721px) {
   .mobileMenu { display: none !important; }
   .backdrop { display: none !important; }
-  .mobileRight { display: none !important; }
 }

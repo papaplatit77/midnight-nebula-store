@@ -1,41 +1,30 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 body {
-  background: #060108;
-  background-image:
-    radial-gradient(ellipse 80% 60% at 70% -10%, rgba(179,0,255,0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at -10% 80%, rgba(124,0,212,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(155,0,255,0.06) 0%, transparent 70%);
-  background-attachment: fixed;
+  background: #07010f;
   color: #f0f0f0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
+/* #root без isolation/z-index — не ломает position:fixed у Stars */
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  position: relative;
-  z-index: 1;
 }
+
+/* Все структурные элементы выше звёзд (z-index:0) */
+main, footer { position: relative; z-index: 1; }
 
 a { color: inherit; text-decoration: none; }
 button { cursor: pointer; border: none; outline: none; font-family: inherit; }
 input, select, textarea { font-family: inherit; outline: none; }
 img { max-width: 100%; display: block; }
 
-/* Убираем 300ms задержку и tap highlight на всех интерактивных элементах */
 a, button, select, input, [role="button"] {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -43,10 +32,5 @@ a, button, select, input, [role="button"] {
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(179,0,255,0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(179,0,255,0.5); }
-
-/* Мобильный viewport fix */
-@supports (-webkit-touch-callout: none) {
-  body { background-attachment: scroll; }
-}
+::-webkit-scrollbar-thumb { background: rgba(140,0,255,0.4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(68,212,255,0.5); }

@@ -11,7 +11,7 @@ const ADMIN_IDS  = new Set([
   ADMIN_ID,
   ...((process.env.EXTRA_ADMINS || '').split(',').map(s => Number(s.trim())).filter(Boolean)),
 ]);
-const WEBAPP_URL     = process.env.WEBAPP_URL || 'https://wakashop-snowy.vercel.app';
+const WEBAPP_URL     = process.env.WEBAPP_URL || 'https://midnight-nebula-snowy.vercel.app';
 const PORT           = process.env.PORT || 3001;
 const DB_FILE        = process.env.DB_FILE || path.join(__dirname, 'db.json');
 const LOG_CHANNEL_ID = process.env.TELEGRAM_LOG_CHAT_ID || null;
@@ -220,7 +220,7 @@ bot.onText(/\/start/, (msg) => {
 
   bot.sendMessage(id,
     `👋 Привет, <b>${first_name || 'друг'}</b>!\n\n` +
-    `Добро пожаловать в <b>Wakashop</b> — лучший вейп-магазин NRW 🇩🇪\n\n` +
+    `Добро пожаловать в <b>Midnight Nebula</b> — лучший вейп-магазин NRW 🇩🇪\n\n` +
     `Чтобы оформить заказ — нажмите кнопку <b>ОФОРМИТЬ ЗАКАЗ</b> в левом нижнем углу.\n\n` +
     `<i>Только оригинальная продукция · Доставка по всей Германии · 18+</i>`,
     { parse_mode: 'HTML', reply_markup: USER_KB }
@@ -238,7 +238,7 @@ function sendAdminMenu(chatId) {
   const db = loadDB();
   const totalOrders = Object.values(db.orders || {}).reduce((s, arr) => s + arr.length, 0);
   bot.sendMessage(chatId,
-    `🛠 <b>Панель администратора — WAKASHOP</b>\n\n` +
+    `🛠 <b>Панель администратора — MIDNIGHT NEBULA</b>\n\n` +
     `👥 Пользователей: <b>${Object.keys(db.users).length}</b>\n` +
     `📦 Заказов: <b>${totalOrders}</b>\n` +
     `🚫 Забанено: <b>${Object.keys(db.bans).length}</b>`,
@@ -323,7 +323,7 @@ bot.on('message', async (msg) => {
         if (mode === 'ban') {
           db.bans[target.id] = { bannedAt: new Date().toISOString(), username: target.username };
           saveDB(db);
-          bot.sendMessage(target.id, '🚫 Вы заблокированы в Wakashop.').catch(() => {});
+          bot.sendMessage(target.id, '🚫 Вы заблокированы в Midnight Nebula.').catch(() => {});
           return bot.sendMessage(chatId, `🚫 <b>${name}</b> забанен.`, { parse_mode: 'HTML', reply_markup: ADMIN_KB });
         } else {
           if (!db.bans[target.id]) {
@@ -406,7 +406,7 @@ bot.on('message', async (msg) => {
 
   if (msgText === 'ℹ️ О нас') {
     return bot.sendMessage(chatId,
-      `🛒 <b>WAKASHOP</b> — один из быстрорастущих магазинов в Германии с актуальным ассортиментом и надёжным сервисом.\n\n` +
+      `🛒 <b>MIDNIGHT NEBULA</b> — один из быстрорастущих магазинов в Германии с актуальным ассортиментом и надёжным сервисом.\n\n` +
       `<b>Что у нас найдёте:</b>\n` +
       `• жидкости и pod-системы\n` +
       `• одноразовые устройства и картриджи\n` +
@@ -427,11 +427,11 @@ bot.on('message', async (msg) => {
       `📦 <b>ОПТ</b>\n\n` +
       `Для оптовых заказов и обсуждения условий сотрудничества\n` +
       `пожалуйста, свяжитесь с нашим менеджером:\n\n` +
-      `@WAKAmanagerNRW`,
+      `@midnight_nebula_manager`,
       {
         parse_mode: 'HTML',
         reply_markup: {
-          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/WAKAmanagerNRW' }]],
+          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/midnight_nebula_manager' }]],
         },
       }
     );
@@ -456,11 +456,11 @@ bot.on('message', async (msg) => {
       `🛟 <b>Поддержка</b>\n\n` +
       `Если у вас есть вопросы или пожелания,\n` +
       `свяжитесь с нашим менеджером — мы всегда готовы помочь:\n\n` +
-      `@WAKAmanagerNRW`,
+      `@midnight_nebula_manager`,
       {
         parse_mode: 'HTML',
         reply_markup: {
-          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/WAKAmanagerNRW' }]],
+          inline_keyboard: [[{ text: '✉️ Написать менеджеру', url: 'https://t.me/midnight_nebula_manager' }]],
         },
       }
     );
@@ -853,14 +853,14 @@ app.post('/api/save-order', (req, res) => {
   if (tgUserId) {
     const recipient = courierUsername
       ? courierUsername.replace(/^@/, '')
-      : 'WAKAmanagerNRW';
+      : 'midnight_nebula_manager';
 
     const msgText = order.deliveryType === 'meeting'
       ? `✅ <b>Заказ оформлен!</b>\n\n📍 ${order.city} · ${deliveryLabel}\n💰 ${paymentLabel}\n💎 <b>${order.total} €</b>\n\nНажмите кнопку ниже — откроется чат с курьером с готовым текстом заказа. Просто нажмите «Отправить».`
       : `✅ <b>Заказ оформлен!</b>\n\n📬 Почта · ${paymentLabel}\n💎 <b>${order.total} €</b>\n\nМенеджер свяжется с вами в ближайшее время.`;
 
     const text = orderText || (
-      `📦 ЗАКАЗ WAKASHOP\n` +
+      `📦 ЗАКАЗ MIDNIGHT NEBULA\n` +
       `Доставка: ${deliveryLabel}\n` +
       `Город: ${order.city || '—'}\n` +
       `Оплата: ${paymentLabel}\n` +
@@ -894,7 +894,7 @@ app.post('/api/order', async (req, res) => {
   const itemsList     = items.map(i => `• ${i.name} × ${i.qty} — ${(i.price * i.qty).toFixed(2)} €`).join('\n');
 
   const orderText =
-    `🛒 <b>НОВЫЙ ЗАКАЗ — WAKASHOP</b>\n` +
+    `🛒 <b>НОВЫЙ ЗАКАЗ — MIDNIGHT NEBULA</b>\n` +
     `━━━━━━━━━━━━━━━━━━━━━\n` +
     `👤 ${tgUsername || 'неизвестен'}${tgUserId ? ` (id: ${tgUserId})` : ''}\n` +
     `📍 ${city}\n🚚 ${deliveryLabel}\n💰 ${paymentLabel}\n` +
@@ -1102,5 +1102,5 @@ app.delete('/api/admin/users/:userId', (req, res) => {
 app.get('/health', (_req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
 
 app.listen(PORT, () => {
-  console.log(`✅ Wakashop bot запущен | порт ${PORT}`);
+  console.log(`✅ Midnight Nebula bot запущен | порт ${PORT}`);
 });

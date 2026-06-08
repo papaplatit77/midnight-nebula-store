@@ -59,7 +59,7 @@ export default function Products() {
             <div className={styles.cardImage}>
               <span>{CAT_ICONS[product.category] || '📦'}</span>
               {!product.inStock && <div className={styles.outStock}>Нет в наличии</div>}
-              {product.tags?.includes('хит') && <span className={styles.tag} style={{background:'rgba(179,0,255,0.75)'}}>Хит</span>}
+              {product.tags?.includes('хит') && <span className={styles.tag} style={{background:'rgba(0,180,255,0.75)'}}>Хит</span>}
               {product.tags?.includes('новинка') && <span className={styles.tag} style={{background:'rgba(52,211,153,0.75)'}}>Новинка</span>}
             </div>
             <div className={styles.cardBody}>

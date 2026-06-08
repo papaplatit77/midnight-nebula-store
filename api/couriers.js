@@ -1,4 +1,4 @@
-const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';
+const BOT_URL = process.env.BOT_API_URL || 'https://midnight-nebula-production.up.railway.app';
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
 export default async function handler(req, res) {

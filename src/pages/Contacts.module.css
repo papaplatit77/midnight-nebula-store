@@ -26,13 +26,13 @@
   border-radius: 10px; color: #f0f0f0; font-size: 14px; transition: border-color 0.2s, background 0.2s;
   width: 100%;
 }
-.form input:focus, .form textarea:focus { border-color: rgba(179,0,255,0.5); background: rgba(255,255,255,0.07); }
+.form input:focus, .form textarea:focus { border-color: rgba(0,180,255,0.5); background: rgba(255,255,255,0.07); }
 .form input::placeholder, .form textarea::placeholder { color: rgba(255,255,255,0.18); }
 .form textarea { resize: vertical; }
 .form button {
   padding: 12px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  background: linear-gradient(135deg, #00aaff, #0044cc);
   color: #fff; border-radius: 10px; font-size: 15px; font-weight: 600;
-  box-shadow: 0 4px 16px rgba(179,0,255,0.4); transition: opacity 0.2s;
+  box-shadow: 0 4px 16px rgba(0,180,255,0.4); transition: opacity 0.2s;
 }
 .form button:hover { opacity: 0.85; }

@@ -1,0 +1,114 @@
+/* z-index: 0 — ниже секций (z-index:1) и хедера (z-index:200),
+   но выше body фона. Секции с position:relative;z-index:1 гарантированно
+   перекрывают звёзды. pointer-events выключен — клики проходят насквозь. */
+
+.nebula, .base, .twinkleA, .twinkleB, .twinkleC {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 1. Туманность */
+.nebula {
+  background:
+    radial-gradient(ellipse 65% 50% at 72%  6%, rgba(120,0,255,0.20) 0%, transparent 65%),
+    radial-gradient(ellipse 48% 38% at  8% 74%, rgba(0,50,220,0.14)  0%, transparent 60%),
+    radial-gradient(ellipse 38% 30% at 50% 98%, rgba(130,0,255,0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 22% at 30% 40%, rgba(80,0,180,0.07)  0%, transparent 55%);
+}
+
+/* 2. Статичные звёзды — разная яркость */
+.base {
+  background:
+    radial-gradient(circle 2.5px at  7% 11%, rgba(255,255,255,1.0),   transparent 5px),
+    radial-gradient(circle 2.5px at 22%  4%, rgba(225,235,255,0.95),  transparent 5px),
+    radial-gradient(circle 2.5px at 48% 17%, rgba(255,255,255,0.98),  transparent 5px),
+    radial-gradient(circle 2.5px at 67%  7%, rgba(210,230,255,0.90),  transparent 5px),
+    radial-gradient(circle 2.5px at 83% 22%, rgba(255,255,255,0.95),  transparent 5px),
+    radial-gradient(circle 2.5px at 91%  3%, rgba(230,240,255,0.88),  transparent 5px),
+    radial-gradient(circle 2.5px at  4% 74%, rgba(255,255,255,0.92),  transparent 5px),
+    radial-gradient(circle 2.5px at 73% 71%, rgba(215,230,255,0.85),  transparent 5px),
+    radial-gradient(circle 2.5px at 89% 81%, rgba(255,255,255,0.90),  transparent 5px),
+    radial-gradient(circle 2.5px at 27% 89%, rgba(230,240,255,0.80),  transparent 5px),
+    radial-gradient(circle 2.5px at 50% 51%, rgba(255,255,255,0.82),  transparent 5px),
+    radial-gradient(circle 1.5px at 37% 32%, rgba(210,200,255,0.80),  transparent 3px),
+    radial-gradient(circle 1.5px at 77% 38%, rgba(255,255,255,0.75),  transparent 3px),
+    radial-gradient(circle 1.5px at 14% 47%, rgba(200,225,255,0.70),  transparent 3px),
+    radial-gradient(circle 1.5px at 57% 43%, rgba(185,215,255,0.65),  transparent 3px),
+    radial-gradient(circle 1.5px at 93% 56%, rgba(255,255,255,0.72),  transparent 3px),
+    radial-gradient(circle 1.5px at 41% 67%, rgba(210,195,255,0.68),  transparent 3px),
+    radial-gradient(circle 1.5px at 62% 93%, rgba(255,255,255,0.60),  transparent 3px),
+    radial-gradient(circle 1.5px at 18% 25%, rgba(200,225,255,0.65),  transparent 3px),
+    radial-gradient(circle 1.5px at 52% 58%, rgba(215,205,255,0.58),  transparent 3px),
+    radial-gradient(circle 1.5px at 85% 46%, rgba(255,255,255,0.70),  transparent 3px),
+    radial-gradient(circle 1.5px at 31% 77%, rgba(205,225,255,0.62),  transparent 3px),
+    radial-gradient(circle 1.5px at 96% 33%, rgba(185,218,255,0.55),  transparent 3px),
+    radial-gradient(circle 1.5px at  2% 55%, rgba(255,255,255,0.65),  transparent 3px),
+    radial-gradient(circle 1.5px at 69% 85%, rgba(212,195,255,0.60),  transparent 3px),
+    radial-gradient(circle 1.5px at 44% 96%, rgba(255,255,255,0.50),  transparent 3px),
+    radial-gradient(circle 2px at 33%  9%, rgba(136,68,255,1.0),   transparent 6px),
+    radial-gradient(circle 2px at 79% 15%, rgba(68,212,255,1.0),   transparent 6px),
+    radial-gradient(circle 2px at  5% 38%, rgba(120,60,255,0.95),  transparent 6px),
+    radial-gradient(circle 2px at 60% 72%, rgba(68,212,255,0.90),  transparent 6px),
+    radial-gradient(circle 2px at 95% 62%, rgba(140,72,255,0.85),  transparent 6px),
+    radial-gradient(circle 2px at 50% 28%, rgba(68,212,255,0.88),  transparent 6px),
+    radial-gradient(circle 2px at 16% 88%, rgba(110,55,255,0.80),  transparent 6px),
+    radial-gradient(circle 2px at 88% 10%, rgba(68,212,255,0.82),  transparent 6px);
+}
+
+/* 3–5. Мигающие группы */
+.twinkleA {
+  background:
+    radial-gradient(circle 2.5px at  7% 11%, rgba(255,255,255,1.0),  transparent 5px),
+    radial-gradient(circle 2.5px at 67%  7%, rgba(210,230,255,0.90), transparent 5px),
+    radial-gradient(circle 2.5px at 89% 81%, rgba(255,255,255,0.92), transparent 5px),
+    radial-gradient(circle 2px   at 33%  9%, rgba(136,68,255,1.0),   transparent 6px),
+    radial-gradient(circle 2px   at 60% 72%, rgba(68,212,255,0.90),  transparent 6px),
+    radial-gradient(circle 1.5px at 37% 32%, rgba(210,200,255,0.80), transparent 3px),
+    radial-gradient(circle 1.5px at 93% 56%, rgba(255,255,255,0.72), transparent 3px),
+    radial-gradient(circle 1.5px at 44% 96%, rgba(255,255,255,0.50), transparent 3px);
+  animation: twinkleA 3.2s ease-in-out infinite;
+}
+@keyframes twinkleA {
+  0%, 100% { opacity: 1; }
+  40%       { opacity: 0.10; }
+  70%       { opacity: 0.85; }
+}
+
+.twinkleB {
+  background:
+    radial-gradient(circle 2.5px at 48% 17%, rgba(255,255,255,0.98),  transparent 5px),
+    radial-gradient(circle 2.5px at 83% 22%, rgba(255,255,255,0.95),  transparent 5px),
+    radial-gradient(circle 2.5px at 27% 89%, rgba(230,240,255,0.80),  transparent 5px),
+    radial-gradient(circle 2px   at 79% 15%, rgba(68,212,255,1.0),    transparent 6px),
+    radial-gradient(circle 2px   at 95% 62%, rgba(140,72,255,0.85),   transparent 6px),
+    radial-gradient(circle 1.5px at 77% 38%, rgba(255,255,255,0.75),  transparent 3px),
+    radial-gradient(circle 1.5px at 52% 58%, rgba(215,205,255,0.58),  transparent 3px),
+    radial-gradient(circle 1.5px at 16% 88%, rgba(110,55,255,0.80),   transparent 6px);
+  animation: twinkleB 4.5s ease-in-out infinite;
+  animation-delay: -1.8s;
+}
+@keyframes twinkleB {
+  0%, 100% { opacity: 0.65; }
+  30%       { opacity: 1; }
+  65%       { opacity: 0.08; }
+}
+
+.twinkleC {
+  background:
+    radial-gradient(circle 2.5px at 22%  4%, rgba(225,235,255,0.95), transparent 5px),
+    radial-gradient(circle 2.5px at 91%  3%, rgba(230,240,255,0.88), transparent 5px),
+    radial-gradient(circle 2px   at  5% 38%, rgba(120,60,255,0.95),  transparent 6px),
+    radial-gradient(circle 2px   at 50% 28%, rgba(68,212,255,0.88),  transparent 6px),
+    radial-gradient(circle 1.5px at 14% 47%, rgba(200,225,255,0.70), transparent 3px),
+    radial-gradient(circle 1.5px at 85% 46%, rgba(255,255,255,0.70), transparent 3px),
+    radial-gradient(circle 1.5px at 31% 77%, rgba(205,225,255,0.62), transparent 3px),
+    radial-gradient(circle 1.5px at 88% 10%, rgba(68,212,255,0.82),  transparent 6px);
+  animation: twinkleC 2.4s ease-in-out infinite;
+  animation-delay: -0.9s;
+}
+@keyframes twinkleC {
+  0%, 100% { opacity: 0.8; }
+  50%       { opacity: 0.07; }
+}

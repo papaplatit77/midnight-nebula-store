@@ -57,10 +57,12 @@ export default function OrderModal({ onClose }) {
 
   const courierForCity = city ? (couriersList.find(c => c.cities && c.cities.includes(city)) || null) : null;
 
-  // Города с назначенными курьерами (для встречи)
+  // Города для встречи: если курьеры настроены — их города, иначе все города
   const citiesWithCouriers = useMemo(() => {
+    if (couriersList.length === 0) return CITIES;
     const assigned = new Set(couriersList.flatMap(c => c.cities || []));
-    return CITIES.filter(c => assigned.has(c));
+    const filtered = CITIES.filter(c => assigned.has(c));
+    return filtered.length > 0 ? filtered : CITIES;
   }, [couriersList]);
 
   const MAIL_COSTS = { track: 6.20, notrack: 4.19 };
@@ -132,7 +134,7 @@ export default function OrderModal({ onClose }) {
 
   const buildOrderText = () => {
     const deliveryLabel = deliveryType === 'meeting' ? 'Личная встреча' : 'Почта (DHL)';
-    const paymentLabel = payment === 'card' ? 'Карта' : 'Наличные';
+    const paymentLabel = payment === 'card' ? 'Карта' : payment === 'crypto' ? 'Крипто' : 'Наличные';
     const orderCity = deliveryType === 'mail' ? deliveryCity.trim() : city;
     const tg = tgHandle.trim() || (username ? username.replace('@', '') : '');
     const itemsText = items.map(i => `• ${i.name} ×${i.qty} — ${(i.price * i.qty).toFixed(2)} €`).join('\n');
@@ -140,7 +142,7 @@ export default function OrderModal({ onClose }) {
       ? `\nПолучатель: ${firstName.trim()} ${lastName.trim()}\nАдрес: ${street.trim()}, ${plz.trim()} ${deliveryCity.trim()}`
       : '';
     return (
-      `📦 ЗАКАЗ WAKASHOP\n` +
+      `📦 ЗАКАЗ MIDNIGHT NEBULA\n` +
       `TG: @${tg}\n` +
       `Доставка: ${deliveryLabel}\n` +
       `Город: ${orderCity}\n` +
@@ -157,7 +159,7 @@ export default function OrderModal({ onClose }) {
     if (items.length === 0) return;
 
     const text = buildOrderText();
-    const recipient = deliveryType === 'meeting' ? 'ManagerCobaltLabAroma' : 'WAKAmanagerNRW';
+    const recipient = deliveryType === 'meeting' ? 'ManagerCobaltLabAroma' : 'midnight_nebula_manager';
     const url = `https://t.me/${recipient}?text=${encodeURIComponent(text)}`;
 
     clear();
@@ -178,62 +180,50 @@ export default function OrderModal({ onClose }) {
         {step === 1 && (
           <div className={styles.step1}>
             <div className={styles.stepHeader}>
-              <p className={styles.stepLabel}>WAKASHOP</p>
-              <h2 className={styles.stepTitle}>Оформить заказ</h2>
-              <p className={styles.stepSub}>Выберите способ получения и оплаты</p>
+              <p className={styles.stepLabel}>MIDNIGHT NEBULA STORE</p>
+              <h2 className={styles.stepTitle}>Детали заказа</h2>
+              <p className={styles.stepSub}>Укажи как и где получить</p>
             </div>
 
             {/* Способ доставки */}
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Способ получения</label>
-              <div className={styles.optionRow}>
+              <div className={styles.toggleRow}>
                 <button
-                  className={`${styles.optionBtn} ${deliveryType === 'meeting' ? styles.optionActive : ''}`}
+                  className={`${styles.toggleBtn} ${deliveryType === 'meeting' ? styles.toggleActive : ''}`}
                   onClick={() => handleDeliveryType('meeting')}
                 >
-                  <span className={styles.optionIcon}>🤝</span>
-                  <span className={styles.optionText}>
-                    <strong>Личная встреча</strong>
-                    <small>Быстро и удобно</small>
-                  </span>
+                  <span className={styles.toggleMain}>Личная встреча</span>
+                  <span className={styles.toggleSub}>быстро, в твоём городе</span>
                 </button>
                 <button
-                  className={`${styles.optionBtn} ${deliveryType === 'mail' ? styles.optionActive : ''}`}
+                  className={`${styles.toggleBtn} ${deliveryType === 'mail' ? styles.toggleActive : ''}`}
                   onClick={() => handleDeliveryType('mail')}
                 >
-                  <span className={styles.optionIcon}>📬</span>
-                  <span className={styles.optionText}>
-                    <strong>Почта</strong>
-                    <small>DHL · только карта</small>
-                  </span>
+                  <span className={styles.toggleMain}>Почта DHL</span>
+                  <span className={styles.toggleSub}>только банковская карта</span>
                 </button>
               </div>
             </div>
 
-            {/* Варианты почты — только если выбрана почта */}
+            {/* Варианты почты */}
             {deliveryType === 'mail' && (
               <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Тип доставки</label>
-                <div className={styles.optionRow}>
+                <label className={styles.fieldLabel}>Тип отправления</label>
+                <div className={styles.toggleRow}>
                   <button
-                    className={`${styles.optionBtn} ${mailOption === 'track' ? styles.optionActive : ''}`}
+                    className={`${styles.toggleBtn} ${mailOption === 'track' ? styles.toggleActive : ''}`}
                     onClick={() => setMailOption('track')}
                   >
-                    <span className={styles.optionIcon}>📦</span>
-                    <span className={styles.optionText}>
-                      <strong>С трек-номером</strong>
-                      <small>DHL · 6,20 €</small>
-                    </span>
+                    <span className={styles.toggleMain}>С трек-номером</span>
+                    <span className={styles.toggleSub}>DHL · 6,20 €</span>
                   </button>
                   <button
-                    className={`${styles.optionBtn} ${mailOption === 'notrack' ? styles.optionActive : ''}`}
+                    className={`${styles.toggleBtn} ${mailOption === 'notrack' ? styles.toggleActive : ''}`}
                     onClick={() => setMailOption('notrack')}
                   >
-                    <span className={styles.optionIcon}>✉️</span>
-                    <span className={styles.optionText}>
-                      <strong>Без трек-номера</strong>
-                      <small>DHL · 4,19 €</small>
-                    </span>
+                    <span className={styles.toggleMain}>Без трека</span>
+                    <span className={styles.toggleSub}>DHL · 4,19 €</span>
                   </button>
                 </div>
               </div>
@@ -333,37 +323,28 @@ export default function OrderModal({ onClose }) {
 
             {/* Оплата */}
             <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Способ оплаты</label>
+              <label className={styles.fieldLabel}>Оплата</label>
               {deliveryType === 'mail' ? (
-                <div className={`${styles.optionBtn} ${styles.optionActive} ${styles.optionLocked}`}>
-                  <span className={styles.optionIcon}>💳</span>
-                  <span className={styles.optionText}>
-                    <strong>Банковская карта</strong>
-                    <small>Единственный вариант для почты</small>
-                  </span>
+                <div className={`${styles.toggleBtn} ${styles.toggleActive} ${styles.toggleLocked}`}>
+                  <span className={styles.toggleMain}>Банковская карта</span>
+                  <span className={styles.toggleSub}>единственный вариант для почты</span>
                 </div>
               ) : (
-                <div className={styles.optionRow}>
-                  <button
-                    className={`${styles.optionBtn} ${payment === 'card' ? styles.optionActive : ''}`}
-                    onClick={() => setPayment('card')}
-                  >
-                    <span className={styles.optionIcon}>💳</span>
-                    <span className={styles.optionText}>
-                      <strong>Банковская карта</strong>
-                      <small>Безналичный расчёт</small>
-                    </span>
-                  </button>
-                  <button
-                    className={`${styles.optionBtn} ${payment === 'cash' ? styles.optionActive : ''}`}
-                    onClick={() => setPayment('cash')}
-                  >
-                    <span className={styles.optionIcon}>💵</span>
-                    <span className={styles.optionText}>
-                      <strong>Наличные</strong>
-                      <small>При получении</small>
-                    </span>
-                  </button>
+                <div className={styles.payTabs}>
+                  {[
+                    { id:'card',  label:'Карта',     sub:'банк. перевод' },
+                    { id:'cash',  label:'Наличные',  sub:'при получении' },
+                    { id:'crypto',label:'Крипто',    sub:'USDT / BTC' },
+                  ].map(p => (
+                    <button
+                      key={p.id}
+                      className={`${styles.payTab} ${payment === p.id ? styles.payTabActive : ''}`}
+                      onClick={() => setPayment(p.id)}
+                    >
+                      <span className={styles.payTabLabel}>{p.label}</span>
+                      <span className={styles.payTabSub}>{p.sub}</span>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -388,13 +369,7 @@ export default function OrderModal({ onClose }) {
           <div className={styles.step2}>
             <div className={styles.step2Header}>
               <button className={styles.backBtn} onClick={() => setStep(1)}>← Назад</button>
-              <div className={styles.step2Info}>
-                <span className={styles.step2Tag}>
-                  {deliveryType === 'meeting' ? '🤝 Встреча' : mailOption === 'track' ? '📦 Почта+трек' : '✉️ Почта'}
-                </span>
-                <span className={styles.step2Tag}>📍 {deliveryType === 'mail' ? deliveryCity : city}</span>
-                <span className={styles.step2Tag}>{payment === 'card' ? '💳 Карта' : '💵 Нал'}</span>
-              </div>
+              <p className={styles.step2Title}>Выберите товары</p>
             </div>
 
             {/* Поиск */}
@@ -424,7 +399,6 @@ export default function OrderModal({ onClose }) {
                     className={`${styles.filterChip} ${activeCat === cat.id ? styles.filterChipActive : ''}`}
                     onClick={() => setActiveCat(cat.id)}
                   >
-                    {cat.id !== 'all' && <span>{CAT_EMOJI[cat.id]}</span>}
                     {cat.name}
                   </button>
                 ))}
@@ -435,7 +409,7 @@ export default function OrderModal({ onClose }) {
             <div className={styles.productsGrid}>
               {filtered.length === 0 ? (
                 <div className={styles.empty}>
-                  <span>😔</span>
+                  <span style={{fontSize:20,opacity:0.4}}>—</span>
                   <p>Ничего не найдено</p>
                 </div>
               ) : filtered.map(p => {
@@ -451,7 +425,7 @@ export default function OrderModal({ onClose }) {
                       {p.image ? (
                         <img src={p.image} alt={p.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                       ) : (
-                        <span>{CAT_EMOJI[p.category] || '📦'}</span>
+                        <span className={styles.productPlaceholder} />
                       )}
                       {!p.inStock && <div className={styles.stockOverlay}>Нет</div>}
                       {inCart && (
@@ -515,7 +489,7 @@ export default function OrderModal({ onClose }) {
             ) : (
               <>
                 <div className={styles.stepHeader}>
-                  <p className={styles.stepLabel}>WAKASHOP</p>
+                  <p className={styles.stepLabel}>MIDNIGHT NEBULA</p>
                   <h2 className={styles.stepTitle}>Ваш заказ</h2>
                 </div>
 
@@ -524,7 +498,7 @@ export default function OrderModal({ onClose }) {
                     {deliveryType === 'meeting' && (
                     <div className={styles.confirmRow}>
                       <span className={styles.confirmKey}>Город</span>
-                      <span className={styles.confirmVal}>📍 {city}</span>
+                      <span className={styles.confirmVal}>{city}</span>
                     </div>
                   )}
                   {deliveryType === 'mail' && (
@@ -535,7 +509,7 @@ export default function OrderModal({ onClose }) {
                       </div>
                       <div className={styles.confirmRow}>
                         <span className={styles.confirmKey}>Город</span>
-                        <span className={styles.confirmVal}>📍 {deliveryCity}</span>
+                        <span className={styles.confirmVal}>{deliveryCity}</span>
                       </div>
                     </>
                   )}
@@ -543,15 +517,17 @@ export default function OrderModal({ onClose }) {
                     <span className={styles.confirmKey}>Доставка</span>
                     <span className={styles.confirmVal}>
                       {deliveryType === 'meeting'
-                        ? '🤝 Личная встреча'
+                        ? 'Личная встреча'
                         : mailOption === 'track'
-                          ? '📦 Почта с трек-номером'
-                          : '✉️ Почта без трек-номера'}
+                          ? 'Почта с трек-номером'
+                          : 'Почта без трек-номера'}
                     </span>
                   </div>
                   <div className={styles.confirmRow}>
                     <span className={styles.confirmKey}>Оплата</span>
-                    <span className={styles.confirmVal}>{payment === 'card' ? '💳 Карта' : '💵 Наличные'}</span>
+                    <span className={styles.confirmVal}>
+                      {payment === 'card' ? 'Карта' : payment === 'crypto' ? 'Крипто' : 'Наличные'}
+                    </span>
                   </div>
                 </div>
 
@@ -567,7 +543,7 @@ export default function OrderModal({ onClose }) {
                   {shippingCost > 0 && (
                     <div className={styles.confirmItem}>
                       <span className={styles.confirmItemName}>
-                        {mailOption === 'track' ? '📦 Доставка (с трек-номером)' : '✉️ Доставка (без трек-номера)'}
+                        {mailOption === 'track' ? 'Доставка (с трек-номером)' : 'Доставка (без трек-номера)'}
                       </span>
                       <span className={styles.confirmItemQty}></span>
                       <span className={styles.confirmItemPrice}>{shippingCost.toFixed(2)} €</span>

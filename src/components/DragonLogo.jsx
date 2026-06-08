@@ -1,42 +1,32 @@
-export default function DragonLogo({ size = 40 }) {
+export default function NebulaLogo({ size = 40 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#b300ff" />
-          <stop offset="100%" stopColor="#7c00d4" />
+        <linearGradient id="nlg1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#44d4ff" />
+          <stop offset="100%" stopColor="#0044cc" />
         </linearGradient>
-        <linearGradient id="pg2" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#d966ff" />
-          <stop offset="100%" stopColor="#b300ff" />
+        <linearGradient id="nlg2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#00aaff" />
+          <stop offset="100%" stopColor="#0066ff" />
         </linearGradient>
-        <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="2" result="b" />
+        <filter id="nglow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2.5" result="b" />
           <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
-      {/* Neon W shape */}
-      <path
-        d="M6 10 L12 36 L24 18 L36 36 L42 10"
-        stroke="url(#pg2)"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        filter="url(#glow)"
-      />
-      <path
-        d="M6 10 L12 36 L24 18 L36 36 L42 10"
-        stroke="url(#pg)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Glow dots at tips */}
-      <circle cx="6" cy="10" r="2" fill="#d966ff" filter="url(#glow)" />
-      <circle cx="42" cy="10" r="2" fill="#d966ff" filter="url(#glow)" />
-      <circle cx="24" cy="18" r="2" fill="#b300ff" filter="url(#glow)" />
+      {/* Planet body */}
+      <circle cx="24" cy="24" r="9" fill="url(#nlg2)" filter="url(#nglow)" opacity="0.9" />
+      {/* Ring */}
+      <ellipse cx="24" cy="24" rx="20" ry="7"
+        stroke="url(#nlg1)" strokeWidth="2.2" fill="none"
+        filter="url(#nglow)" />
+      {/* Stars */}
+      <circle cx="7"  cy="9"  r="1.4" fill="#44d4ff" filter="url(#nglow)" />
+      <circle cx="41" cy="7"  r="1"   fill="#00aaff" filter="url(#nglow)" />
+      <circle cx="43" cy="38" r="1.4" fill="#44d4ff" filter="url(#nglow)" />
+      <circle cx="5"  cy="39" r="1"   fill="#00aaff" filter="url(#nglow)" />
+      <circle cx="39" cy="16" r="0.8" fill="#44d4ff" filter="url(#nglow)" />
     </svg>
   );
 }

@@ -7,9 +7,9 @@
 .sidebar {
   width: 230px;
   flex-shrink: 0;
-  background: rgba(6, 1, 8, 0.9);
+  background: rgba(2, 8, 20, 0.9);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(179,0,255,0.12);
+  border-right: 1px solid rgba(0,180,255,0.12);
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
@@ -30,7 +30,7 @@
   font-size: 16px;
   font-weight: 900;
   letter-spacing: 3px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4, #d966ff);
+  background: linear-gradient(135deg, #00aaff, #0044cc, #44d4ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -64,9 +64,9 @@
   color: rgba(255,255,255,0.8);
 }
 .navActive {
-  background: rgba(179,0,255,0.15) !important;
+  background: rgba(0,180,255,0.15) !important;
   color: #f0f0f0 !important;
-  border: 1px solid rgba(179,0,255,0.25);
+  border: 1px solid rgba(0,180,255,0.25);
 }
 .navActive .navIcon { filter: none; }
 
@@ -74,7 +74,7 @@
 
 .badge {
   margin-left: auto;
-  background: #b300ff;
+  background: #00aaff;
   color: #fff;
   font-size: 10px;
   font-weight: 700;
@@ -85,7 +85,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 5px;
-  box-shadow: 0 0 8px rgba(179,0,255,0.6);
+  box-shadow: 0 0 8px rgba(0,180,255,0.6);
 }
 
 .sideBottom {
@@ -132,7 +132,7 @@
 }
 
 .topbar {
-  background: rgba(6,1,8,0.7);
+  background: rgba(2,8,20,0.7);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   padding: 0 28px;
@@ -152,9 +152,9 @@
 .topbarRight { display: flex; align-items: center; gap: 12px; }
 .alert {
   font-size: 13px;
-  color: #d966ff;
-  background: rgba(179,0,255,0.1);
-  border: 1px solid rgba(179,0,255,0.2);
+  color: #44d4ff;
+  background: rgba(0,180,255,0.1);
+  border: 1px solid rgba(0,180,255,0.2);
   border-radius: 8px;
   padding: 5px 12px;
 }

@@ -21,20 +21,20 @@
 .box {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(179, 0, 255, 0.2);
+  border: 1px solid rgba(0, 180, 255, 0.2);
   border-radius: 24px;
   padding: 48px 40px;
   max-width: 420px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 8px 64px rgba(179, 0, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow: 0 8px 64px rgba(0, 180, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
 .logo {
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 5px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4, #d966ff);
+  background: linear-gradient(135deg, #00aaff, #0044cc, #44d4ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -78,15 +78,15 @@
 .yes {
   flex: 1;
   padding: 14px;
-  background: linear-gradient(135deg, #b300ff, #7c00d4);
+  background: linear-gradient(135deg, #00aaff, #0044cc);
   color: #fff;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
-  box-shadow: 0 4px 20px rgba(179, 0, 255, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 180, 255, 0.5);
   transition: opacity 0.2s, box-shadow 0.2s;
 }
-.yes:hover { opacity: 0.88; box-shadow: 0 4px 28px rgba(179, 0, 255, 0.7); }
+.yes:hover { opacity: 0.88; box-shadow: 0 4px 28px rgba(0, 180, 255, 0.7); }
 
 .no {
   flex: 1;

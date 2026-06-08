@@ -101,7 +101,7 @@ export default async function handler(req, res) {
       (courierName ? `🚗 Курьер: <b>${esc(courierName)}</b>\n` : '');
 
   const text =
-    `🛒 <b>НОВЫЙ ЗАКАЗ — WAKASHOP</b>\n` +
+    `🛒 <b>НОВЫЙ ЗАКАЗ — MIDNIGHT NEBULA</b>\n` +
     `━━━━━━━━━━━━━━━━━━━━━\n` +
     `✈️ ${esc(tgUsername) || 'неизвестен'}${tgUserId ? ` (id: ${tgUserId})` : ''}\n` +
     mailDetails +
@@ -120,7 +120,7 @@ export default async function handler(req, res) {
   }
 
   // ── Сохранение заказа + уведомление курьеру + кнопка пользователю ──
-  const BOT_URL = process.env.BOT_API_URL || 'https://wakashop-production.up.railway.app';
+  const BOT_URL = process.env.BOT_API_URL || 'https://midnight-nebula-production.up.railway.app';
   fetch(`${BOT_URL}/api/save-order`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
