@@ -411,3 +411,8 @@
   .infoSection, .featuresSection, .paySection, .ctaSection { padding: 52px 0; }
   .ctaInner { padding: 36px 20px; }
 }
+
+@media (max-width: 720px) {
+  .orderBtnInner { animation: none; }
+  .orderBtnGlow { animation: none; }
+}
