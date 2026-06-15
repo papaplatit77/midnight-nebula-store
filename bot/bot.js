@@ -298,10 +298,17 @@ function buildOrdersPage(userId, page) {
   return { text, kb };
 }
 
+// ── /ping ─────────────────────────────────────────────────────
+bot.onText(/\/ping/, (msg) => {
+  bot.sendMessage(msg.chat.id, '🏓 pong');
+});
+
 // ── Все сообщения ─────────────────────────────────────────────
 bot.on('message', async (msg) => {
   const chatId  = msg.chat.id;
   const msgText = (msg.text || '').trim();
+
+  console.log(`MSG [${chatId}] ${msg.from?.username || 'no_user'}: "${msgText}"`);
 
   if (msgText.startsWith('/')) return;
 
