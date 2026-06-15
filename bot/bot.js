@@ -154,10 +154,20 @@ function buildAddItemKeyboard(courierId, orderId, session, products) {
 // ── Состояния ────────────────────────────────────────────────
 const waiting = {};   // { [chatId]: 'broadcast' | 'ban' | 'unban' }
 const orderPage = {}; // { [chatId]: pageIndex }
+let shopPhotoFileId = null; // кешируем file_id после первой отправки
 
 // ── Bot ──────────────────────────────────────────────────────
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 const isAdmin = id => ADMIN_IDS.has(id);
+
+// Сначала сбрасываем webhook (если был), потом запускаем polling
+bot.deleteWebhook().then(() => {
+  bot.startPolling();
+  console.log('✅ Polling запущен');
+}).catch(err => {
+  console.error('❌ Ошибка deleteWebhook:', err.message);
+  bot.startPolling();
+});
 
 bot.on('polling_error', (err) => {
   console.error('Polling error:', err.code || err.message);
@@ -179,9 +189,9 @@ const ADMIN_KB = {
 
 const USER_KB = {
   keyboard: [
-    [{ text: '🛍 Мои заказы' }, { text: 'ℹ️ О нас'   }],
-    [{ text: '🆘 Поддержка'  }, { text: '📦 Опт'     }],
-    [{ text: '🏙 Города: Курьеры' }],
+    [{ text: '🛒 Заказать' }],
+    [{ text: '🏙 Города: Курьеры' }, { text: 'ℹ️ О нас' }],
+    [{ text: '🆘 Поддержка' }],
   ],
   resize_keyboard: true,
   is_persistent: true,
@@ -212,19 +222,28 @@ function buildCitiesKeyboard() {
 }
 
 // ── /start ────────────────────────────────────────────────────
-bot.onText(/\/start/, (msg) => {
-  const { id, first_name } = msg.from;
-  if (isBanned(id)) return bot.sendMessage(id, '🚫 Вы заблокированы.');
-  saveUser(msg.from);
-  if (isAdmin(id)) return sendAdminMenu(id);
+bot.onText(/\/start/, async (msg) => {
+  try {
+    const { id, first_name } = msg.from;
+    console.log(`/start from ${id} (${msg.from.username || 'no username'})`);
+    if (isBanned(id)) return bot.sendMessage(id, '🚫 Вы заблокированы.');
+    saveUser(msg.from);
+    if (isAdmin(id)) return sendAdminMenu(id);
 
-  bot.sendMessage(id,
-    `👋 Привет, <b>${first_name || 'друг'}</b>!\n\n` +
-    `Добро пожаловать в <b>Midnight Nebula</b> — лучший вейп-магазин NRW 🇩🇪\n\n` +
-    `Чтобы оформить заказ — нажмите кнопку <b>ОФОРМИТЬ ЗАКАЗ</b> в левом нижнем углу.\n\n` +
-    `<i>Только оригинальная продукция · Доставка по всей Германии · 18+</i>`,
-    { parse_mode: 'HTML', reply_markup: USER_KB }
-  );
+    await bot.sendMessage(id,
+      `👋 Привет, <b>${first_name || 'друг'}</b>!\n\n` +
+      `Добро пожаловать в <b>Midnight Nebula</b> — лучший вейп-магазин NRW 🇩🇪\n\n` +
+      `Используйте кнопки ниже:\n` +
+      `🛒 <b>Заказать</b> — открыть магазин и оформить заказ\n` +
+      `🏙 <b>Города: Курьеры</b> — найти курьера в вашем городе\n` +
+      `ℹ️ <b>О нас</b> — информация о магазине\n` +
+      `🆘 <b>Поддержка</b> — связаться с менеджером\n\n` +
+      `<i>Только оригинальная продукция · Доставка по всей Германии · 18+</i>`,
+      { parse_mode: 'HTML', reply_markup: USER_KB }
+    );
+  } catch (err) {
+    console.error('/start error:', err.message);
+  }
 });
 
 // ── /admin ────────────────────────────────────────────────────
@@ -397,6 +416,23 @@ bot.on('message', async (msg) => {
 
   // ══ USER ══
   if (isBanned(chatId)) return bot.sendMessage(chatId, '🚫 Вы заблокированы.');
+
+  if (msgText === '🛒 Заказать') {
+    const caption =
+      `🛍 <b>MIDNIGHT NEBULA</b>\n\n` +
+      `Добро пожаловать в наш магазин!\n\n` +
+      `• Жидкости и pod-системы\n` +
+      `• Одноразовые устройства и картриджи\n` +
+      `• Быстрая доставка по всей Германии\n\n` +
+      `Нажмите кнопку ниже, чтобы перейти в магазин и оформить заказ 👇`;
+    const shopKb = {
+      inline_keyboard: [[{ text: '🛒 Перейти в магазин', url: WEBAPP_URL }]],
+    };
+    const photo = shopPhotoFileId || fs.createReadStream(path.join(__dirname, 'hero.png'));
+    return bot.sendPhoto(chatId, photo, { caption, parse_mode: 'HTML', reply_markup: shopKb })
+      .then(sent => { if (!shopPhotoFileId) shopPhotoFileId = sent.photo.at(-1).file_id; })
+      .catch(() => bot.sendMessage(chatId, caption, { parse_mode: 'HTML', reply_markup: shopKb }));
+  }
 
   if (msgText === '🛍 Мои заказы') {
     orderPage[chatId] = 0;
