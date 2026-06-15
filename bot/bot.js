@@ -157,17 +157,14 @@ const orderPage = {}; // { [chatId]: pageIndex }
 let shopPhotoFileId = null; // кешируем file_id после первой отправки
 
 // ── Bot ──────────────────────────────────────────────────────
-const bot = new TelegramBot(BOT_TOKEN, { polling: false });
-const isAdmin = id => ADMIN_IDS.has(id);
+// Сначала сбрасываем webhook через API, потом стартуем polling
+fetch(`https://api.telegram.org/bot${BOT_TOKEN}/deleteWebhook`)
+  .then(r => r.json())
+  .then(d => console.log('deleteWebhook:', d.ok ? 'ok' : d.description))
+  .catch(err => console.error('deleteWebhook error:', err.message));
 
-// Сначала сбрасываем webhook (если был), потом запускаем polling
-bot.deleteWebhook().then(() => {
-  bot.startPolling();
-  console.log('✅ Polling запущен');
-}).catch(err => {
-  console.error('❌ Ошибка deleteWebhook:', err.message);
-  bot.startPolling();
-});
+const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+const isAdmin = id => ADMIN_IDS.has(id);
 
 bot.on('polling_error', (err) => {
   console.error('Polling error:', err.code || err.message);
